@@ -3,23 +3,23 @@ extern crate serde_cbor as cbor;
 use std::mem;
 use std::slice;
 
-fn triple(x: i32) -> i32 {
+fn triple_impl(x: i32) -> i32 {
     x * 3
 }
 
-fn triple_tenkei_impl(input: &[u8]) -> Box<[u8]> {
+fn triple_wrapper(input: &[u8]) -> Box<[u8]> {
     let param = cbor::from_slice(input).unwrap();
-    cbor::to_vec(&triple(param)).unwrap().into_boxed_slice()
+    cbor::to_vec(&triple_impl(param)).unwrap().into_boxed_slice()
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn triple_tenkei(
+pub unsafe extern "C" fn triple(
     input: *const u8,
     input_len: usize,
     output: *mut *mut u8,
     output_len: *mut usize,
 ) {
-    let mut result = triple_tenkei_impl(slice::from_raw_parts(input, input_len));
+    let mut result = triple_wrapper(slice::from_raw_parts(input, input_len));
     *output = result.as_mut_ptr();
     *output_len = result.len();
     mem::forget(result)
