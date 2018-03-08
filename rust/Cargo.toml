@@ -1,0 +1,13 @@
+[package]
+name = "tenkei-rust"
+version = "0.0.1"
+authors = ["Tobias Bucher <tobiasbucher5991@gmail.com>"]
+
+[profile.dev]
+panic = "abort"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+serde_cbor = "0.8.2"
