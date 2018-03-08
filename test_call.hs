@@ -18,7 +18,8 @@ import Data.Maybe
 -- #include "rust/src/tenkei_rust.h"
 
 foreign import ccall "triple" c_triple :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
-	
+foreign import ccall "tenkei_free" c_tenkei_free :: Ptr Word8 -> CSize -> IO ()
+
 serializeInt :: Integer -> [Word8]
 serializeInt = unpack . runPut . putCBOR . intToCBOR
 
@@ -42,5 +43,7 @@ call function bytes = withArray bytes $ \ptr -> (alloca (\res_ptr -> alloca (\re
 						function ptr (fromIntegral (length bytes)) res_ptr res_size
 						res_ptr' <- peek res_ptr
 						res_size' <- peek res_size
-						peekArray (fromEnum res_size') res_ptr'
+						res <- peekArray (fromEnum res_size') res_ptr'
+						c_tenkei_free res_ptr' res_size'
+						return res
 					)))
