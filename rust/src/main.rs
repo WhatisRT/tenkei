@@ -10,7 +10,7 @@ use structopt::StructOpt;
 mod sys {
     #[link(name = "tenkei_haskell")]
     extern "C" {
-        pub fn triple(
+        pub fn quadruple(
             input: *const u8,
             input_len: usize,
             output: *mut *mut u8,
@@ -51,16 +51,16 @@ impl Drop for Buffer {
     }
 }
 
-fn triple_wrapper(input: &[u8]) -> Buffer {
+fn quadruple_wrapper(input: &[u8]) -> Buffer {
     let mut buffer = Buffer::new();
     unsafe {
-        sys::triple(input.as_ptr(), input.len(), &mut buffer.ptr, &mut buffer.len);
+        sys::quadruple(input.as_ptr(), input.len(), &mut buffer.ptr, &mut buffer.len);
     }
     buffer
 }
 
-fn triple(x: i32) -> i32 {
-    cbor::from_slice(&triple_wrapper(&cbor::to_vec(&x).unwrap())).unwrap()
+fn quadruple(x: i32) -> i32 {
+    cbor::from_slice(&quadruple_wrapper(&cbor::to_vec(&x).unwrap())).unwrap()
 }
 
 #[derive(StructOpt)]
@@ -70,5 +70,5 @@ struct Options {
 
 fn main() {
     let options = Options::from_args();
-    println!("{}", triple(options.integer));
+    println!("{}", quadruple(options.integer));
 }
