@@ -17,6 +17,8 @@ mod sys {
             output_len: *mut usize,
         );
         pub fn tenkei_free(buffer: *mut u8, buffer_len: usize);
+        pub fn hs_init(argc: *mut i32, argv: *mut *mut *mut u8);
+        pub fn hs_exit();
     }
 }
 
@@ -69,6 +71,12 @@ struct Options {
 }
 
 fn main() {
+    unsafe {
+        sys::hs_init(ptr::null_mut(), ptr::null_mut());
+    }
     let options = Options::from_args();
     println!("{}", quadruple(options.integer));
+    unsafe {
+        sys::hs_exit();
+    }
 }
