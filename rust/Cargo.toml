@@ -10,4 +10,5 @@ panic = "abort"
 crate-type = ["cdylib"]
 
 [dependencies]
+structopt = "0.2.5"
 serde_cbor = "0.8.2"
