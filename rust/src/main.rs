@@ -17,6 +17,9 @@ mod sys {
             output_len: *mut usize,
         );
         pub fn tenkei_free(buffer: *mut u8, buffer_len: usize);
+    }
+    #[link(name = "HSrts-ghc8.2.2")]
+    extern "C" {
         pub fn hs_init(argc: *mut i32, argv: *mut *mut *mut u8);
         pub fn hs_exit();
     }
