@@ -1,4 +1,6 @@
 *.dll
 *.dylib
+*.hi
+*.o
 *.so
 .DS_Store
