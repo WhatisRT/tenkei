@@ -1,3 +1,5 @@
+{-# LANGUAGE ForeignFunctionInterface #-}
+
 module Test where
 
 import Foreign
@@ -21,15 +23,14 @@ foreign export ccall quadruple :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr C
 tenkei_free :: Ptr Word8 -> CSize -> IO ()
 tenkei_free args size = free args
 
-quadruple :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
-quadruple args argn res resn = do 
-                                x <- fmap (serializeInt . fromIntegral . quadrupleImpl . fromJust . cborToInt) $ fromC args argn
+offerFunction :: (Int32 -> Int32) -> Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
+offerFunction f args argn res resn = do 
+                                x <- fmap (serializeInt . fromIntegral . f . fromJust . cborToInt) $ fromC args argn
                                 poke resn $ fromIntegral $ length x
                                 res_ptr <- newArray x
                                 poke res $ res_ptr
-                                   
-                                    
-                                    
+
+quadruple = offerFunction quadrupleImpl
 
 quadrupleImpl x = 4 * x
                                     
