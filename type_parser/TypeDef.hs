@@ -1,6 +1,7 @@
 {-# OPTIONS_GHC -Wall #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 module TypeDef where
 
@@ -9,22 +10,29 @@ import Data.Foldable
 import Data.List
 
 import Data.Aeson
+import Data.Aeson.Encode.Pretty (encodePretty)
 import Data.ByteString.Lazy.Char8 (pack)
 
+import GHC.Generics
+
 type Identifier = [String]
-data TypeDef = TypeDef { name :: String, parts :: TypeParts } deriving Show
+data TypeDef = TypeDef { typeName :: String, parts :: TypeParts } deriving Show
 data TypeParts = SumParts [(String,String)] | ProdParts [String] | Unit deriving Show
+
+data FunDef = FunDef { funName :: String, source :: String, target :: String } deriving (Generic, Show)
+
+data DefFile = DefFile { funDefs :: [FunDef], typeDefs :: [TypeDef] } deriving (Generic, Show)
 
 decodeType :: String -> Maybe TypeDef
 decodeType = decode . pack
 
 toTypeDef :: String -> Maybe [(String,String)] -> Maybe [String] -> TypeDef
-toTypeDef n (Just x) _ = TypeDef n $ SumParts x
-toTypeDef n _ (Just x) = TypeDef n $ ProdParts x
-toTypeDef n _ _ = TypeDef n Unit
+toTypeDef name (Just x) _ = TypeDef name $ SumParts x
+toTypeDef name _ (Just x) = TypeDef name $ ProdParts x
+toTypeDef name _ _ = TypeDef name Unit
 
 instance ToJSON TypeDef where
-  toJSON x = object ["name" .= name x, partsType .= parts x]
+  toJSON x = object ["name" .= typeName x, partsType .= parts x]
     where partsType = case (parts x) of
             SumParts _ -> "sumParts"
             ProdParts _ -> "prodParts"
@@ -38,6 +46,12 @@ instance ToJSON TypeParts where
 instance FromJSON TypeDef where
   parseJSON = withObject "TypeDef" $ \v ->
     toTypeDef <$> v .: "name" <*> v .:? "sumParts" <*> v .:? "prodParts"
+
+instance FromJSON FunDef
+instance ToJSON FunDef
+
+instance FromJSON DefFile
+instance ToJSON DefFile
 
 title :: String -> String
 title (c:cs) = toUpper c : cs

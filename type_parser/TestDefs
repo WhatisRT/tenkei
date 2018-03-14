@@ -1,0 +1,17 @@
+{
+    "typeDefs": [
+        {
+            "name": "TestType",
+            "prodParts": [
+                "Int"
+            ]
+        }
+    ],
+    "funDefs": [
+        {
+            "funName": "test1",
+            "source": "TestType",
+            "target": "Int"
+        }
+    ]
+}
