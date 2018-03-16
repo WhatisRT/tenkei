@@ -3,7 +3,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE DeriveGeneric #-}
 
-module TypeDef where
+module Types where
 
 import Data.Char
 import Data.Foldable
@@ -15,8 +15,6 @@ import Data.ByteString.Lazy.Char8 (pack)
 import Data.ByteString.Lazy (writeFile)
 
 import GHC.Generics
-
-module Types where
 
 type Identifier = [String]
 data TypeDef = TypeDef { typeName :: String, parts :: TypeParts } deriving Show
