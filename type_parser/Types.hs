@@ -18,7 +18,7 @@ import GHC.Generics
 
 type Identifier = [String]
 data TypeDef = TypeDef { typeName :: Identifier, parts :: TypeParts } deriving Show
-data TypeParts = SumParts [(String,Identifier)] | ProdParts [(String,Identifier)] | Unit deriving Show
+data TypeParts = SumParts [(Identifier,Identifier)] | ProdParts [(Identifier,Identifier)] | Unit deriving Show
 primitiveTypes = ["Int8","Int16","Int32","Int64","String"] :: [String] -- to specify a primitive type definition, use Unit
 
 data FunDef = FunDef { funName :: Identifier, source :: Identifier, target :: Identifier } deriving (Generic, Show)
@@ -28,7 +28,7 @@ data DefFile = DefFile { funDefs :: [FunDef], typeDefs :: [TypeDef] } deriving (
 decodeType :: String -> Maybe DefFile
 decodeType = decode . pack
 
-toTypeDef :: Identifier -> Maybe [(String,Identifier)] -> Maybe [(String,Identifier)] -> TypeDef
+toTypeDef :: Identifier -> Maybe [(Identifier,Identifier)] -> Maybe [(Identifier,Identifier)] -> TypeDef
 toTypeDef name (Just x) _ = TypeDef name $ SumParts x
 toTypeDef name _ (Just x) = TypeDef name $ ProdParts x
 toTypeDef name _ _ = TypeDef name Unit

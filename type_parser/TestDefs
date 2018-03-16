@@ -7,13 +7,50 @@
             ],
             "prodParts": [
                 [
-                    "test",
+                    [
+                        "test"
+                    ],
+                    [
+                        "Int"
+                    ]
+                ],
+                [
+                    [
+                        "other",
+                        "test"
+                    ],
+                    [
+                        "Int"
+                    ]
+                ]
+            ]
+        },
+        {
+            "name": [
+                "test",
+                "type"
+            ],
+            "sumParts": [
+                [
+                    [
+                        "test"
+                    ],
+                    [
+                        "Int"
+                    ]
+                ],
+                [
+                    [
+                        "other",
+                        "test"
+                    ],
                     [
                         "Int"
                     ]
                 ]
             ]
         }
+
     ],
     "funDefs": [
         {
@@ -28,6 +65,20 @@
             "target": [
                 "Int"
             ]
+        },
+        {
+            "funName": [
+                "test",
+                "2"
+            ],
+            "source": [
+                "test",
+                "type"
+            ],
+            "target": [
+                "Int"
+            ]
         }
+
     ]
 }
