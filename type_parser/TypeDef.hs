@@ -10,14 +10,18 @@ import Data.Foldable
 import Data.List
 
 import Data.Aeson
-import Data.Aeson.Encode.Pretty (encodePretty)
+import Data.Aeson.Encode.Pretty
 import Data.ByteString.Lazy.Char8 (pack)
+import Data.ByteString.Lazy (writeFile)
 
 import GHC.Generics
+
+module Types where
 
 type Identifier = [String]
 data TypeDef = TypeDef { typeName :: String, parts :: TypeParts } deriving Show
 data TypeParts = SumParts [(String,String)] | ProdParts [String] | Unit deriving Show
+primitiveTypes = ["Int8","Int16","Int32","Int64","String"] :: [String] -- to specify a primitive type definition, use Unit
 
 data FunDef = FunDef { funName :: String, source :: String, target :: String } deriving (Generic, Show)
 
@@ -52,6 +56,9 @@ instance ToJSON FunDef
 
 instance FromJSON DefFile
 instance ToJSON DefFile
+
+writeDefFile :: FilePath -> DefFile -> IO ()
+writeDefFile path = Data.ByteString.Lazy.writeFile path . encodePretty
 
 title :: String -> String
 title (c:cs) = toUpper c : cs
