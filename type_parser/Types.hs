@@ -17,18 +17,18 @@ import Data.ByteString.Lazy (writeFile)
 import GHC.Generics
 
 type Identifier = [String]
-data TypeDef = TypeDef { typeName :: String, parts :: TypeParts } deriving Show
-data TypeParts = SumParts [(String,String)] | ProdParts [String] | Unit deriving Show
+data TypeDef = TypeDef { typeName :: Identifier, parts :: TypeParts } deriving Show
+data TypeParts = SumParts [(String,Identifier)] | ProdParts [(String,Identifier)] | Unit deriving Show
 primitiveTypes = ["Int8","Int16","Int32","Int64","String"] :: [String] -- to specify a primitive type definition, use Unit
 
-data FunDef = FunDef { funName :: String, source :: String, target :: String } deriving (Generic, Show)
+data FunDef = FunDef { funName :: Identifier, source :: Identifier, target :: Identifier } deriving (Generic, Show)
 
 data DefFile = DefFile { funDefs :: [FunDef], typeDefs :: [TypeDef] } deriving (Generic, Show)
 
-decodeType :: String -> Maybe TypeDef
+decodeType :: String -> Maybe DefFile
 decodeType = decode . pack
 
-toTypeDef :: String -> Maybe [(String,String)] -> Maybe [String] -> TypeDef
+toTypeDef :: Identifier -> Maybe [(String,Identifier)] -> Maybe [(String,Identifier)] -> TypeDef
 toTypeDef name (Just x) _ = TypeDef name $ SumParts x
 toTypeDef name _ (Just x) = TypeDef name $ ProdParts x
 toTypeDef name _ _ = TypeDef name Unit
