@@ -6,9 +6,19 @@ import Text.Printf
 import Data.List
 import Types
 
+header :: String
+header = intercalate "\n" [
+  "{-# LANGUAGE ForeignFunctionInterface #-}",
+  "{-# LANGUAGE CPP                      #-}",
+  "",
+  "import Foreign",
+  "import Foreign.C",
+  "import Foreign.Ptr",
+  "\n"]
 
 createHaskellFile :: DefFile -> String
-createHaskellFile (DefFile funDefs typeDefs) = printf "%s\n\n\n%s\n"
+createHaskellFile (DefFile funDefs typeDefs) = printf "%s%s\n\n\n%s\n"
+  header
   (intercalate "\n\n" $ fmap funDefToText funDefs)
   (intercalate "\n" $ fmap typeDefToText typeDefs)
 
