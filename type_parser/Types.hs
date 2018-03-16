@@ -18,17 +18,18 @@ import GHC.Generics
 
 type Identifier = [String]
 data TypeDef = TypeDef { typeName :: Identifier, parts :: TypeParts } deriving Show
-data TypeParts = SumParts [(Identifier,Identifier)] | ProdParts [(Identifier,Identifier)] | Unit deriving Show
-primitiveTypes = ["Int8","Int16","Int32","Int64","String"] :: [String] -- to specify a primitive type definition, use Unit
+data TypeParts = SumParts [(Identifier,Type)] | ProdParts [(Identifier,Type)] | Unit deriving Show
+data Type = Primitive PrimitiveType | Composite Identifier deriving (Generic, Show)
+data PrimitiveType = Int32 deriving (Generic, Show)
 
-data FunDef = FunDef { funName :: Identifier, source :: Identifier, target :: Identifier } deriving (Generic, Show)
+data FunDef = FunDef { funName :: Identifier, source :: Type, target :: Type } deriving (Generic, Show)
 
 data DefFile = DefFile { funDefs :: [FunDef], typeDefs :: [TypeDef] } deriving (Generic, Show)
 
 decodeType :: String -> Maybe DefFile
 decodeType = decode . pack
 
-toTypeDef :: Identifier -> Maybe [(Identifier,Identifier)] -> Maybe [(Identifier,Identifier)] -> TypeDef
+toTypeDef :: Identifier -> Maybe [(Identifier,Type)] -> Maybe [(Identifier,Type)] -> TypeDef
 toTypeDef name (Just x) _ = TypeDef name $ SumParts x
 toTypeDef name _ (Just x) = TypeDef name $ ProdParts x
 toTypeDef name _ _ = TypeDef name Unit
@@ -54,6 +55,13 @@ instance ToJSON FunDef
 
 instance FromJSON DefFile
 instance ToJSON DefFile
+
+instance FromJSON Type
+instance ToJSON Type
+
+instance FromJSON PrimitiveType
+instance ToJSON PrimitiveType
+
 
 writeDefFile :: FilePath -> DefFile -> IO ()
 writeDefFile path = Data.ByteString.Lazy.writeFile path . encodePretty

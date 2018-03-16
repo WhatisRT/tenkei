@@ -10,47 +10,51 @@
                     [
                         "test"
                     ],
-                    [
-                        "Int"
-                    ]
+                    {
+                        "tag": "Primitive",
+                        "contents": []
+                    }
                 ],
                 [
                     [
                         "other",
                         "test"
                     ],
-                    [
-                        "Int"
-                    ]
+                    {
+                        "tag": "Primitive",
+                        "contents": []
+                    }
                 ]
             ]
         },
         {
             "name": [
                 "test",
-                "type"
+                "type",
+                "2"
             ],
             "sumParts": [
                 [
                     [
                         "test"
                     ],
-                    [
-                        "Int"
-                    ]
+                    {
+                        "tag": "Primitive",
+                        "contents": []
+                    }
                 ],
                 [
                     [
                         "other",
                         "test"
                     ],
-                    [
-                        "Int"
-                    ]
+                    {
+                        "tag": "Primitive",
+                        "contents": []
+                    }
                 ]
             ]
         }
-
     ],
     "funDefs": [
         {
@@ -58,27 +62,34 @@
                 "test",
                 "1"
             ],
-            "source": [
-                "test",
-                "type"
-            ],
-            "target": [
-                "Int"
-            ]
+            "source": {
+                "tag": "Composite",
+                "contents": [
+                    "test",
+                    "type"
+                ]
+            },
+            "target": {
+                "tag": "Primitive",
+                "contents": []
+            }
         },
         {
             "funName": [
                 "test",
                 "2"
             ],
-            "source": [
-                "test",
-                "type"
-            ],
-            "target": [
-                "Int"
-            ]
+            "source": {
+                "tag": "Composite",
+                "contents": [
+                    "test",
+                    "type"
+                ]
+            },
+            "target": {
+                "tag": "Primitive",
+                "contents": []
+            }
         }
-
     ]
 }
