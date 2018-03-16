@@ -65,10 +65,10 @@ camelCase (n:ns) = n ++ pascalCase ns
 camelCase [] = []
 
 snakeCase :: Identifier -> String
-snakeCase = fold . intersperse "_"
+snakeCase = intercalate "_"
 
 screamingSnakeCase :: Identifier -> String
-screamingSnakeCase = fold . intersperse "_" . fmap upper
+screamingSnakeCase = intercalate "_" . fmap upper
 
 pascalCase :: Identifier -> String
 pascalCase = fold . fmap title
