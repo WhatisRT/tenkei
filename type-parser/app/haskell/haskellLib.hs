@@ -14,8 +14,8 @@ import Data.Binary.Get
 
 foreign import ccall "tenkei_free" c_tenkei_free :: Ptr Word8 -> CSize -> IO ()
 
-call :: (Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()) -> [Word8] -> IO [Word8]
-call function bytes = withArray bytes $ \ptr -> (alloca (\res_ptr -> alloca (\res_size ->
+call_c :: (Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()) -> [Word8] -> IO [Word8]
+call_c function bytes = withArray bytes $ \ptr -> (alloca (\res_ptr -> alloca (\res_size ->
                     do
                         function ptr (fromIntegral (length bytes)) res_ptr res_size
                         res_ptr' <- peek res_ptr
@@ -24,6 +24,9 @@ call function bytes = withArray bytes $ \ptr -> (alloca (\res_ptr -> alloca (\re
                         c_tenkei_free res_ptr' res_size'
                         return res
                     )))
+
+call :: (Tenkei a, Tenkei b) => ([Word8] -> IO [Word8]) -> a -> IO b
+call f = (fmap deserialize) . (call_c f) . serialize
 
 class Tenkei a where
   serialize :: a -> [Word8]
