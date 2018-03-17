@@ -1,49 +1,20 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
-{-# LANGUAGE CPP                      #-}
 
 import Foreign
 import Foreign.C
 import Foreign.Ptr
 
-import Data.CBOR
-import Data.Binary.CBOR
-
-import Data.ByteString.Lazy (ByteString, unpack, pack)
-
-import Data.Binary.Put
-import Data.Binary.Get
-
 import Data.Maybe
 
--- #include "rust/src/tenkei_rust.h"
+import Text.Read
 
-foreign import ccall "triple" c_triple :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
-foreign import ccall "tenkei_free" c_tenkei_free :: Ptr Word8 -> CSize -> IO ()
+import Tenkei
+import Rustlib
 
-serializeInt :: Int32 -> [Word8]
-serializeInt = unpack . runPut . putCBOR . intToCBOR
+import System.Environment
+import System.IO.Unsafe
 
-intToCBOR :: Int32 -> CBOR
-intToCBOR i | i >= 0 = CBOR_UInt $ fromIntegral i
-            | otherwise = CBOR_SInt $ fromIntegral i
-
-deserializeInt :: [Word8] -> Integer
-deserializeInt i = fromJust $ cborToInt $ runGet getCBOR $ pack i
-
-cborToInt :: CBOR -> Maybe Integer
-cborToInt (CBOR_UInt i) = Just i
-cborToInt (CBOR_SInt i) = Just i
-cborToInt _ = Nothing
-
-f = (fmap deserializeInt) . (call c_triple) . serializeInt
-
-call :: (Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()) -> [Word8] -> IO [Word8]
-call function bytes = withArray bytes $ \ptr -> (alloca (\res_ptr -> alloca (\res_size ->
-                    do
-                        function ptr (fromIntegral (length bytes)) res_ptr res_size
-                        res_ptr' <- peek res_ptr
-                        res_size' <- peek res_size
-                        res <- peekArray (fromEnum res_size') res_ptr'
-                        c_tenkei_free res_ptr' res_size'
-                        return res
-                    )))
+main :: IO ()
+main = do
+  args <- getArgs
+  putStrLn $ show $ sequence $ fmap ((fmap (unsafePerformIO . triple)) . readMaybe) args

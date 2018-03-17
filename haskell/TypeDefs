@@ -1,0 +1,18 @@
+{
+    "typeDefs": [],
+    "funDefs": [
+        {
+            "funName": [
+                "triple"
+            ],
+            "source": {
+                "tag": "Primitive",
+                "contents": []
+            },
+            "target": {
+                "tag": "Primitive",
+                "contents": []
+            }
+        }
+    ]
+}
