@@ -1,4 +1,5 @@
 {
+    "libName" : ["test", "lib"],  
     "typeDefs": [
         {
             "name": [

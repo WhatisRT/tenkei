@@ -24,7 +24,7 @@ data PrimitiveType = Int32 deriving (Generic, Show)
 
 data FunDef = FunDef { funName :: Identifier, source :: Type, target :: Type } deriving (Generic, Show)
 
-data DefFile = DefFile { funDefs :: [FunDef], typeDefs :: [TypeDef] } deriving (Generic, Show)
+data DefFile = DefFile { libName :: Identifier, funDefs :: [FunDef], typeDefs :: [TypeDef] } deriving (Generic, Show)
 
 decodeType :: String -> Maybe DefFile
 decodeType = decode . pack

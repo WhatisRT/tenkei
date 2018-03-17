@@ -7,11 +7,11 @@ import Text.Printf
 import Data.List
 import Types
 
-header :: String
-header = intercalate "\n" [
+header :: String -> String
+header libName = intercalate "\n" [
   "{-# LANGUAGE ForeignFunctionInterface #-}",
   "",
-  "module Rustlib where",
+  "module " ++ libName ++ " where",
   "",
   "import Foreign",
   "import Foreign.C",
@@ -21,8 +21,8 @@ header = intercalate "\n" [
   "\n"]
 
 createHaskellFile :: DefFile -> String
-createHaskellFile (DefFile funDefs typeDefs) = printf "%s%s\n\n\n%s\n"
-  header
+createHaskellFile (DefFile libName funDefs typeDefs) = printf "%s%s\n\n\n%s\n"
+  (header $ camelCase libName)
   (intercalate "\n\n" $ fmap funDefToText funDefs)
   (intercalate "\n" $ fmap typeDefToText typeDefs)
 
