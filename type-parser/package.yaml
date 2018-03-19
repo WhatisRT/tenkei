@@ -25,6 +25,7 @@ dependencies:
 - aeson-pretty
 - bytestring
 - CBOR
+- parsec
 
 library:
   source-dirs: src
