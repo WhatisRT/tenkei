@@ -16,6 +16,7 @@ header libName = intercalate "\n" [
   "import Foreign",
   "import Foreign.C",
   "import Foreign.Ptr",
+  "import System.IO.Unsafe",
   "",
   "import Tenkei",
   "\n"]
@@ -34,8 +35,8 @@ funDefToText :: FunDef -> String
 funDefToText (FunDef name source target) = intercalate "\n" [printf
   "foreign import ccall \"%s\" foreign_%s :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()"
   (snakeCase name)  (snakeCase name),
-  printf "%s :: %s -> IO %s" (camelCase name) (typeToHaskell source) (typeToHaskell target),
-  printf "%s = call foreign_%s" (camelCase name) (snakeCase name)]
+  printf "%s :: %s -> %s" (camelCase name) (typeToHaskell source) (typeToHaskell target),
+  printf "%s = unsafePerformIO . (call foreign_%s)" (camelCase name) (snakeCase name)]
 
 typeDefToText :: TypeDef -> String
 typeDefToText (TypeDef name (SumParts parts)) = printf "data %s = %s" (pascalCase name) $ intercalate " | " $ fmap (\(n,t) -> pascalCase n ++ " " ++ typeToHaskell t) parts

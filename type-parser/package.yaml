@@ -26,6 +26,8 @@ dependencies:
 - bytestring
 - mtl
 - CBOR
+- either
+- megaparsec
 - parsec
 
 library:

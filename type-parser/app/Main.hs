@@ -2,11 +2,13 @@ module Main where
 
 import Types
 import Haskell.HaskellTypes
+import Haskell.Parser
 
 --import Control.Monad.Trans.State.Lazy
 import Data.Bifunctor
 import Data.Either
 import Data.List
+import Data.Maybe
 
 import System.Environment
 import System.IO.Error
@@ -67,4 +69,11 @@ help _ = liftIO $ putStr $ intercalate "\n" $ [
                                  ] ++ (fmap (\(c,h,_) -> printf "  %s%s" (fillRight c 8) h) actions) ++ [""]
 
 parse :: [String] -> ErrorIO ()
-parse = undefined
+parse args =
+  case args of
+    [source,target] -> do
+      contents <- customError (readFile source) (\e -> "Error while reading " ++ source ++ ":\n" ++ show e)
+      parsed <- return $ fromJust $ parseHaskell contents
+      customError (writeDefFile target parsed) (\e -> "Error while writing " ++ target ++ ":\n" ++ show e)
+
+    _ -> liftIO $ putStrLn "The syntax for this command is: tenkei parse [source] [target]"
