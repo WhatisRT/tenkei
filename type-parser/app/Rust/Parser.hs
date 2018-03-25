@@ -2,7 +2,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies #-}
 
-module Rust.Parser (parseRust) where
+module Rust.Parser where --(parseRust) where
 
 import Data.Either.Combinators
 import Data.Either
@@ -81,18 +81,18 @@ typePartsSum :: Parser TypeDef
 typePartsSum = do
   _ <- symbol "enum"
   name <- lexeme pascalCaseIdentifier
-  parts <- braces $ sepEndBy1 qualifiedTypeParser2 $ char ','
+  parts <- braces $ sepEndBy1 qualifiedTypeParser2 $ symbol ","
   return $ TypeDef name $ SumParts parts
 
 typePartsProduct :: Parser TypeDef
 typePartsProduct = do
   _ <- symbol "struct"
   name <- lexeme pascalCaseIdentifier
-  parts <- braces $ sepEndBy1 qualifiedTypeParser1 $ char ','
+  parts <- braces $ sepEndBy1 qualifiedTypeParser1 $ symbol ","
   return $ TypeDef name $ ProdParts parts
 
 typeDef :: Parser TypeDef
-typeDef = (try typePartsProduct) <|> typePartsSum
+typeDef = try typePartsProduct <|> typePartsSum
 
 data RustBlock = OneLinePub | MultiLinePub String String | Nested deriving Show
 
@@ -117,4 +117,4 @@ otherBlock = do
   return Nested
 
 codeBlock :: Parser RustBlock
-codeBlock = try (lexeme oneLinePubBlock) <|> (try $ lexeme multiLinePubBlock) <|> otherBlock
+codeBlock = try (lexeme oneLinePubBlock) <|> try (lexeme multiLinePubBlock) <|> otherBlock
