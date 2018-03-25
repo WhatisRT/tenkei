@@ -8,6 +8,7 @@ import Data.List
 import Data.Either.Combinators
 import Data.Either
 import Data.Maybe
+import Data.Char
 
 import Text.Megaparsec
 import Text.Megaparsec.Char
@@ -27,13 +28,13 @@ pascalCaseIdentifier :: Parser Identifier
 pascalCaseIdentifier = many $ do
   c <- allowedCharacterUpper
   rest <- many allowedCharacterLower
-  return (c : rest)
+  return $ toLower <$> (c : rest)
 
 camelCaseIdentifier :: Parser Identifier
 camelCaseIdentifier = do
   initial <- some allowedCharacterLower
   rest <- pascalCaseIdentifier
-  return (initial : rest)
+  return $ ((toLower <$> initial) : rest)
 
 spaceConsumer :: Parser ()
 spaceConsumer = L.space space1 (L.skipLineComment "--") (L.skipBlockComment "{-" "-}")

@@ -44,3 +44,13 @@ executables:
     - aeson
     - aeson-pretty
     - type-parser
+
+tests:
+  spec:
+    main: Spec.hs
+    source-dirs:
+    - test
+    - app
+    - src
+    dependencies:
+    - hspec

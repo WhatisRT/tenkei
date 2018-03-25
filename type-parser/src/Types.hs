@@ -17,14 +17,14 @@ import Data.ByteString.Lazy (writeFile)
 import GHC.Generics
 
 type Identifier = [String]
-data TypeDef = TypeDef { typeName :: Identifier, parts :: TypeParts } deriving Show
-data TypeParts = SumParts [(Identifier,Type)] | ProdParts [(Identifier,Type)] | Unit deriving Show
-data Type = Primitive PrimitiveType | Composite Identifier deriving (Generic, Show)
-data PrimitiveType = Int32 deriving (Generic, Show)
+data TypeDef = TypeDef { typeName :: Identifier, parts :: TypeParts } deriving (Eq, Show)
+data TypeParts = SumParts [(Identifier,Type)] | ProdParts [(Identifier,Type)] | Unit deriving (Eq, Show)
+data Type = Primitive PrimitiveType | Composite Identifier deriving (Eq, Generic, Show)
+data PrimitiveType = Int32 deriving (Eq, Generic, Show)
 
-data FunDef = FunDef { funName :: Identifier, source :: Type, target :: Type } deriving (Generic, Show)
+data FunDef = FunDef { funName :: Identifier, source :: Type, target :: Type } deriving (Eq, Generic, Show)
 
-data DefFile = DefFile { libName :: Identifier, funDefs :: [FunDef], typeDefs :: [TypeDef] } deriving (Generic, Show)
+data DefFile = DefFile { libName :: Identifier, funDefs :: [FunDef], typeDefs :: [TypeDef] } deriving (Eq, Generic, Show)
 
 decodeType :: String -> Maybe DefFile
 decodeType = decode . pack
@@ -36,7 +36,7 @@ toTypeDef name _ _ = TypeDef name Unit
 
 instance ToJSON TypeDef where
   toJSON x = object ["name" .= typeName x, partsType .= parts x]
-    where partsType = case (parts x) of
+    where partsType = case parts x of
             SumParts _ -> "sumParts"
             ProdParts _ -> "prodParts"
             Unit -> "prodParts"
