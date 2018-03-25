@@ -10,31 +10,13 @@ import Data.Either
 import Data.Maybe
 import Data.Char
 
+import GeneralParsers
+
 import Text.Megaparsec
 import Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as L
 
 import Types
-
-type Parser = Parsec () String
-
-allowedCharacterLower :: Parser Char
-allowedCharacterLower = lowerChar <|> digitChar
-
-allowedCharacterUpper :: Parser Char
-allowedCharacterUpper = upperChar <|> digitChar
-
-pascalCaseIdentifier :: Parser Identifier
-pascalCaseIdentifier = many $ do
-  c <- allowedCharacterUpper
-  rest <- many allowedCharacterLower
-  return $ toLower <$> (c : rest)
-
-camelCaseIdentifier :: Parser Identifier
-camelCaseIdentifier = do
-  initial <- some allowedCharacterLower
-  rest <- pascalCaseIdentifier
-  return $ ((toLower <$> initial) : rest)
 
 spaceConsumer :: Parser ()
 spaceConsumer = L.space space1 (L.skipLineComment "--") (L.skipBlockComment "{-" "-}")
