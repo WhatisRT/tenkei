@@ -1,18 +1,15 @@
-module Main where
+module Main (main) where
 
 import Types
 import Haskell.HaskellTypes
 import Haskell.Parser
 
---import Control.Monad.Trans.State.Lazy
 import Data.Bifunctor
-import Data.Either
 import Data.List
 import Data.Maybe
 
 import System.Environment
 import System.IO.Error
-import Control.Exception
 
 import Control.Monad.Except
 
@@ -21,7 +18,7 @@ import Text.Printf
 type ErrorIO = ExceptT String IO
 
 customError :: IO a -> (IOError -> String) -> ErrorIO a
-customError io f = ExceptT $ fmap (first f) $ tryIOError io
+customError io f = ExceptT $ first f <$> tryIOError io
 
 actions :: [(String, String, [String] -> ErrorIO ())]
 actions = [
@@ -41,15 +38,14 @@ main = do
     (Left s) -> putStrLn s
     (Right _) -> return ()
 
-
 createCode :: [String] -> ErrorIO ()
 createCode args =
   case args of
-    [source,target] -> do
-      contents <- customError (readFile source) (\e -> "Error while reading " ++ source ++ ":\n" ++ show e)
+    [sourceFile,targetFile] -> do
+      contents <- customError (readFile sourceFile) (\e -> "Error while reading " ++ sourceFile ++ ":\n" ++ show e)
       parsed <- parseLibDef contents
-      newFile <- return $ createHaskellFile parsed
-      customError (writeFile target newFile) (\e -> "Error while writing " ++ target ++ ":\n" ++ show e)
+      let newFile = createHaskellFile parsed
+      customError (writeFile targetFile newFile) (\e -> "Error while writing " ++ targetFile ++ ":\n" ++ show e)
 
     _ -> liftIO $ putStrLn "The syntax for this command is: tenkei create [source] [target]"
 
@@ -66,14 +62,14 @@ help _ = liftIO $ putStr $ intercalate "\n" $ [
   "Tool for creating language bindings.",
   "",
   "Commands:"
-                                 ] ++ (fmap (\(c,h,_) -> printf "  %s%s" (fillRight c 8) h) actions) ++ [""]
+                                 ] ++ fmap (\(c,h,_) -> printf "  %s%s" (fillRight c 8) h) actions ++ [""]
 
 parse :: [String] -> ErrorIO ()
 parse args =
   case args of
-    [source,target] -> do
-      contents <- customError (readFile source) (\e -> "Error while reading " ++ source ++ ":\n" ++ show e)
-      parsed <- return $ fromJust $ parseHaskell contents
-      customError (writeDefFile target parsed) (\e -> "Error while writing " ++ target ++ ":\n" ++ show e)
+    [sourceFile,targetFile] -> do
+      contents <- customError (readFile sourceFile) (\e -> "Error while reading " ++ sourceFile ++ ":\n" ++ show e)
+      let parsed = fromJust $ parseHaskell contents
+      customError (writeDefFile targetFile parsed) (\e -> "Error while writing " ++ targetFile ++ ":\n" ++ show e)
 
     _ -> liftIO $ putStrLn "The syntax for this command is: tenkei parse [source] [target]"

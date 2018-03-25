@@ -1,27 +1,51 @@
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE GADTs #-}
 
-module Haskell.Parser where
+module Haskell.Parser (parseHaskell) where
 
-import Data.Char
-import Data.Functor.Identity
 import Data.List
 import Data.Either.Combinators
 import Data.Either
 import Data.Maybe
 
-import Text.Parsec
-import Text.ParserCombinators.Parsec
+import Text.Megaparsec
+import Text.Megaparsec.Char
+import qualified Text.Megaparsec.Char.Lexer as L
 
-import Text.Parsec.Language (haskellDef)
-import qualified Text.Parsec.Token as TokenGen
+import Types
 
-import Types hiding (upper)
+type Parser = Parsec () String
 
-hs = TokenGen.makeTokenParser haskellDef
-lexeme = TokenGen.lexeme hs
-braces = TokenGen.braces hs
-whiteSpace = TokenGen.whiteSpace hs
+allowedCharacterLower :: Parser Char
+allowedCharacterLower = lowerChar <|> digitChar
+
+allowedCharacterUpper :: Parser Char
+allowedCharacterUpper = upperChar <|> digitChar
+
+pascalCaseIdentifier :: Parser Identifier
+pascalCaseIdentifier = many $ do
+  c <- allowedCharacterUpper
+  rest <- many allowedCharacterLower
+  return (c : rest)
+
+camelCaseIdentifier :: Parser Identifier
+camelCaseIdentifier = do
+  initial <- some allowedCharacterLower
+  rest <- pascalCaseIdentifier
+  return (initial : rest)
+
+spaceConsumer :: Parser ()
+spaceConsumer = L.space space1 (L.skipLineComment "--") (L.skipBlockComment "{-" "-}")
+
+lexeme :: Parser a -> Parser a
+lexeme = L.lexeme spaceConsumer
+
+symbol :: String -> Parser String
+symbol = L.symbol spaceConsumer
+
+braces :: Parser a -> Parser a
+braces = between (symbol "{") (symbol "}")
 
 parseHaskell :: String -> Maybe DefFile
 parseHaskell s = do
@@ -31,97 +55,75 @@ parseHaskell s = do
   funDefs <- return $ rights $ fmap (parse function "Function definitions") blocks
   return $ DefFile moduleName funDefs typeDefs
 
-identifier :: Stream s Identity Char => Parsec s u Identifier
-identifier = undefined
-
-allowedCharacterLower :: Stream s Identity Char => ParsecT s u Identity Char
-allowedCharacterLower = lower <|> digit
-
-allowedCharacterUpper :: Stream s Identity Char => ParsecT s u Identity Char
-allowedCharacterUpper = upper <|> digit
-
--- TODO: Recognize numbers
-pascalCaseIdentifier :: Stream s Identity Char => Parsec s u Identifier
-pascalCaseIdentifier = many $ do
-  c <- allowedCharacterUpper
-  rest <- many allowedCharacterLower
-  return (c : rest)
-
-camelCaseIdentifier :: Stream s Identity Char => Parsec s u Identifier
-camelCaseIdentifier = do
-  initial <- many1 allowedCharacterLower
-  rest <- pascalCaseIdentifier
-  return (initial : rest)
-
-moduleDef :: Parsec String u Identifier
+moduleDef :: Parser Identifier
 moduleDef = do
-  lexeme $ string "module"
+  _ <- lexeme $ string "module"
   moduleName <- lexeme pascalCaseIdentifier
-  lexeme $ string "where"
+  _ <- lexeme $ string "where"
   eof
   return moduleName
 
-primitiveType :: Stream s Identity Char => Parsec s u PrimitiveType
+primitiveType :: Parser PrimitiveType
 primitiveType = (string "Int32" >> return Int32)
 
-typeParser :: Stream s Identity Char => Parsec s u Type
-typeParser = (fmap Primitive $ Text.Parsec.try primitiveType) <|> fmap Composite  pascalCaseIdentifier
+typeParser :: Parser Type
+typeParser = (fmap Primitive $ try primitiveType) <|> fmap Composite pascalCaseIdentifier
 
-function :: Parsec String u FunDef
+function :: Parser FunDef
 function = do
   name <- lexeme camelCaseIdentifier
-  lexeme (string "::")
+  _ <- lexeme (string "::")
   source <- lexeme typeParser
-  lexeme (string "->")
+  _ <- lexeme (string "->")
   target <- lexeme typeParser
   return $ FunDef name source target
 
-typePartsSum :: Parsec String u TypeParts
+typePartsSum :: Parser TypeParts
 typePartsSum = fmap SumParts $ sepBy1 constructorParser $ lexeme $ string "|"
   where constructorParser = do
           identifier <- lexeme pascalCaseIdentifier
           typeName <- lexeme typeParser
           return (identifier, typeName)
 
-typePartsProduct :: Parsec String u TypeParts
+typePartsProduct :: Parser TypeParts
 typePartsProduct = do
-  lexeme pascalCaseIdentifier
+  _ <- lexeme pascalCaseIdentifier
   braces (fmap ProdParts $ sepBy1 constructorParser $ lexeme $ string ",")
   where constructorParser = do
           identifier <- lexeme camelCaseIdentifier
-          lexeme (string "::")
+          _ <- lexeme (string "::")
           typeName <- lexeme typeParser
           return (identifier,typeName)
 
-typeDef :: Parsec String u TypeDef
+typeDef :: Parser TypeDef
 typeDef = do
-  lexeme (string "data")
+  _ <- lexeme (symbol "data")
   name <- lexeme pascalCaseIdentifier
-  lexeme (string "=")
-  parts <- Text.Parsec.try typePartsProduct <|> typePartsSum
+  _ <- lexeme (symbol "=")
+  parts <- try typePartsProduct <|> typePartsSum
   return $ TypeDef name parts
 
-lineEnd :: Stream s Identity Char => Parsec s u ()
-lineEnd = eof <|> (endOfLine >> return ())
+lineEnd :: Parser ()
+lineEnd = eof <|> (eol >> return ())
 
-indentedLine :: Stream s Identity Char => Parsec s u String
+indentedLine :: Parser String
 indentedLine = do
   c <- oneOf " \t"
   cs <- manyTill anyChar lineEnd
   return (c : cs)
 
-unindentedLine :: Stream s Identity Char => Parsec s u String
+unindentedLine :: Parser String
 unindentedLine = do
-  c <- letter <|> oneOf "{}-"
+  c <- printChar
   cs <- manyTill anyChar (oneOf "\n")
   return (c : cs)
 
-emptyLine :: Stream s Identity Char => Parsec s u String
-emptyLine = string "\n"
+emptyLine :: Parser String
+emptyLine = symbol "\n"
 
-codeBlock :: Parsec String u String
+codeBlock :: Parser String
 codeBlock = do
-  l <- unindentedLine
+  l <- unindentedLine <|> emptyLine
   ls <- many (indentedLine <|> emptyLine)
   return (intercalate "\n" (l : ls))
 
