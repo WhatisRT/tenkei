@@ -4,9 +4,11 @@ import Types
 import Haskell.HaskellTypes
 import Haskell.Parser
 
+import Rust.RustTypes
+import Rust.Parser
+
 import Data.Bifunctor
 import Data.List
-import Data.Maybe
 
 import System.Environment
 import System.IO.Error
@@ -27,6 +29,24 @@ actions = [
   ("parse", "Parse sourcecode to generate a library definition", parse)
           ]
 
+languages :: [(String,(String -> Maybe DefFile, DefFile -> String))]
+languages = [
+  ("haskell", (parseHaskell, createHaskellFile)),
+  ("rust", (parseRust, createRustFile))]
+
+fromJustError :: Maybe a -> String -> ErrorIO a
+fromJustError (Just x) _ = return x
+fromJustError _ x = throwError x
+
+fillRight :: String -> Int -> String
+fillRight s i | length s < i = fillRight (s ++ " ") i
+              | otherwise = s
+
+selectLanguage :: String -> ErrorIO (String -> Maybe DefFile, DefFile -> String)
+selectLanguage lang | (Just translators) <- lookup lang languages = return translators
+                    | otherwise = throwError ("Unsupported language! Supported languages are:\n"
+                                              ++ intercalate ", " (fst <$> languages))
+
 main :: IO ()
 main = do
   args <- getArgs
@@ -41,35 +61,29 @@ main = do
 createCode :: [String] -> ErrorIO ()
 createCode args =
   case args of
-    [sourceFile,targetFile] -> do
+    [language,sourceFile,targetFile] -> do
+      (_,codeGen) <- selectLanguage language
       contents <- customError (readFile sourceFile) (\e -> "Error while reading " ++ sourceFile ++ ":\n" ++ show e)
-      parsed <- parseLibDef contents
-      let newFile = createHaskellFile parsed
+      parsed <- fromJustError (decodeType contents) "Error while parsing the source file!"
+      let newFile = codeGen parsed
       customError (writeFile targetFile newFile) (\e -> "Error while writing " ++ targetFile ++ ":\n" ++ show e)
 
-    _ -> liftIO $ putStrLn "The syntax for this command is: tenkei create [source] [target]"
-
-parseLibDef :: String -> ErrorIO DefFile
-parseLibDef text | (Just file) <- decodeType text = return file
-                 | otherwise = throwError "Error while parsing the source file"
-
-fillRight :: String -> Int -> String
-fillRight s i | length s < i = fillRight (s ++ " ") i
-              | otherwise = s
+    _ -> liftIO $ putStrLn "The syntax for this command is: tenkei create [language] [source] [target]"
 
 help :: [String] -> ErrorIO ()
 help _ = liftIO $ putStr $ intercalate "\n" $ [
   "Tool for creating language bindings.",
   "",
   "Commands:"
-                                 ] ++ fmap (\(c,h,_) -> printf "  %s%s" (fillRight c 8) h) actions ++ [""]
+  ] ++ fmap (\(c,h,_) -> printf "  %s%s" (fillRight c 8) h) actions ++ [""]
 
 parse :: [String] -> ErrorIO ()
 parse args =
   case args of
-    [sourceFile,targetFile] -> do
+    [language,sourceFile,targetFile] -> do
+      (parser,_) <- selectLanguage language
       contents <- customError (readFile sourceFile) (\e -> "Error while reading " ++ sourceFile ++ ":\n" ++ show e)
-      let parsed = fromJust $ parseHaskell contents
+      parsed <- fromJustError (parser contents) "Error while parsing the source file!"
       customError (writeDefFile targetFile parsed) (\e -> "Error while writing " ++ targetFile ++ ":\n" ++ show e)
 
-    _ -> liftIO $ putStrLn "The syntax for this command is: tenkei parse [source] [target]"
+    _ -> liftIO $ putStrLn "The syntax for this command is: tenkei parse [language] [source] [target]"
