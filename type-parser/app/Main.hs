@@ -1,11 +1,12 @@
 module Main (main) where
 
 import Types
-import Haskell.HaskellTypes
-import Haskell.Parser
 
-import Rust.RustTypes
-import Rust.Parser
+import Generators.Haskell
+import Generators.Rust
+
+import Parsers.Haskell
+import Parsers.Rust
 
 import Data.Bifunctor
 import Data.List

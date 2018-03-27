@@ -2,7 +2,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE GADTs #-}
 
-module Haskell.Parser (parseHaskell) where
+module Parsers.Haskell (parseHaskell) where
 
 import Data.List
 import Data.Either.Combinators
@@ -10,7 +10,7 @@ import Data.Either
 import Data.Maybe
 import Data.Char
 
-import GeneralParsers
+import Parsers.GeneralParsers
 
 import Text.Megaparsec
 import Text.Megaparsec.Char

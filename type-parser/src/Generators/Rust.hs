@@ -1,7 +1,7 @@
 {-# OPTIONS_GHC -Wall -Wno-name-shadowing #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Rust.RustTypes where
+module Generators.Rust where
 
 import Control.Monad
 import Text.Printf

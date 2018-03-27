@@ -2,7 +2,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies #-}
 
-module Rust.Parser where --(parseRust) where
+module Parsers.Rust where --(parseRust) where
 
 import Data.Either.Combinators
 import Data.Either
@@ -11,7 +11,7 @@ import Text.Megaparsec
 import Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as L
 
-import GeneralParsers
+import Parsers.GeneralParsers
 
 import Types
 

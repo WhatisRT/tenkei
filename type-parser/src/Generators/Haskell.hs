@@ -1,7 +1,7 @@
 {-# OPTIONS_GHC -Wall -Wno-name-shadowing #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Haskell.HaskellTypes where
+module Generators.Haskell where
 
 import Text.Printf
 import Data.List

@@ -1,4 +1,4 @@
-module GeneralParsers where
+module Parsers.GeneralParsers where
 
 import Data.Char
 
