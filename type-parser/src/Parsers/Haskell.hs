@@ -4,11 +4,11 @@
 
 module Parsers.Haskell (parseHaskell) where
 
-import Data.List
-import Data.Either.Combinators
+import Control.Monad
 import Data.Either
+import Data.Either.Combinators
+import Data.List
 import Data.Maybe
-import Data.Char
 
 import Parsers.GeneralParsers
 
@@ -50,14 +50,14 @@ primitiveType :: Parser PrimitiveType
 primitiveType = (string "Int32" >> return Int32)
 
 typeParser :: Parser Type
-typeParser = (fmap Primitive $ try primitiveType) <|> fmap Composite pascalCaseIdentifier
+typeParser = (Primitive <$> try primitiveType) <|> fmap Composite pascalCaseIdentifier
 
 function :: Parser FunDef
 function = do
   name <- lexeme camelCaseIdentifier
-  _ <- lexeme (string "::")
+  _ <- symbol "::"
   source <- lexeme typeParser
-  _ <- lexeme (string "->")
+  _ <- symbol "->"
   target <- lexeme typeParser
   return $ FunDef name source target
 
@@ -87,7 +87,7 @@ typeDef = do
   return $ TypeDef name parts
 
 lineEnd :: Parser ()
-lineEnd = eof <|> (eol >> return ())
+lineEnd = eof <|> void eol
 
 indentedLine :: Parser String
 indentedLine = do

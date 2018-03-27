@@ -19,7 +19,7 @@ parseRust :: String -> Maybe DefFile
 parseRust s = do
   blocks <- rightToMaybe $ parse (many codeBlock) "Rust code" s
   --moduleName <- listToMaybe $ rights $ fmap (parse moduleDef "Type definitions") blocks
-  moduleName <- return ["test", "name"]
+  moduleName <- return ["test", "module"]
   typeDefs <- return $ rights $ fmap (parse typeDef "Type definitions") [h ++ b | (MultiLinePub h b) <- blocks]
   funDefs <- return $ rights $ fmap (parse function "Function definitions") [h | (MultiLinePub h _) <- blocks]
   return $ DefFile moduleName funDefs typeDefs

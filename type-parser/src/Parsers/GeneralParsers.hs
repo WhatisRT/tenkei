@@ -15,17 +15,26 @@ allowedCharacterLower = lowerChar <|> digitChar
 allowedCharacterUpper :: Parser Char
 allowedCharacterUpper = upperChar <|> digitChar
 
-pascalCaseIdentifier :: Parser Identifier
-pascalCaseIdentifier = some $ do
+lowerWord :: Parser String
+lowerWord = some allowedCharacterLower
+
+upperWord :: Parser String
+upperWord = do
   c <- allowedCharacterUpper
-  rest <- many allowedCharacterLower
-  return $ toLower <$> (c : rest)
+  cs <- many allowedCharacterLower
+  return $ toLower c : cs
+
+allCapsWord :: Parser String
+allCapsWord = fmap toLower <$> many allowedCharacterUpper
+
+pascalCaseIdentifier :: Parser Identifier
+pascalCaseIdentifier = many upperWord
 
 camelCaseIdentifier :: Parser Identifier
 camelCaseIdentifier = do
-  initial <- some allowedCharacterLower
-  rest <- pascalCaseIdentifier
-  return ((toLower <$> initial) : rest)
+  initial <- lowerWord
+  rest <- many upperWord
+  return (initial : rest)
 
 snakeCaseIdentifier :: Parser Identifier
-snakeCaseIdentifier = sepBy1 (some allowedCharacterLower) $ char '_'
+snakeCaseIdentifier = sepBy1 lowerWord $ char '_'
