@@ -30,24 +30,40 @@ symbol = L.symbol spaceConsumer
 braces :: Parser a -> Parser a
 braces = between (symbol "{") (symbol "}")
 
+brackets :: Parser a -> Parser a
+brackets = between (symbol "[") (symbol "]")
+
+parens :: Parser a -> Parser a
+parens = between (symbol "(") (symbol ")")
+
 parseHaskell :: String -> Maybe DefFile
 parseHaskell s = do
   blocks <- rightToMaybe $ parse (many codeBlock) "Haskell code" s
-  moduleName <- listToMaybe $ rights $ fmap (parse moduleDef "Type definitions") blocks
-  typeDefs <- return $ rights $ fmap (parse typeDef "Type definitions") blocks
-  funDefs <- return $ rights $ fmap (parse function "Function definitions") blocks
+  (moduleName, exports) <- listToMaybe $ rights $ fmap (parse moduleDef "Type definitions") blocks
+  let inExports = inExports' exports
+  let typeDefs = filter (inExports . typeName) $ rights $ fmap (parse typeDef "Type definitions") blocks
+  let funDefs = filter (inExports . funName) $ rights $ fmap (parse function "Function definitions") blocks
   return $ DefFile moduleName funDefs typeDefs
+  where
+    inExports' :: Maybe [Identifier] -> Identifier -> Bool
+    inExports' (Just l) i = i `elem` l
+    inExports' Nothing _ = True
 
-moduleDef :: Parser Identifier
+moduleDef :: Parser (Identifier, Maybe [Identifier])
 moduleDef = do
   _ <- lexeme $ string "module"
   moduleName <- lexeme pascalCaseIdentifier
+  exports <- optional $ parens $ sepBy1 camelCaseIdentifier $ symbol ","
   _ <- lexeme $ string "where"
   eof
-  return moduleName
+  return (moduleName, exports)
 
 primitiveType :: Parser PrimitiveType
-primitiveType = (string "Int32" >> return Int32)
+primitiveType =
+  (string "Int32" >> return Int32)
+  <|> (string "Int64" >> return Int64)
+  <|> (string "Char" >> return Char)
+  <|> (Array <$> brackets typeParser)
 
 typeParser :: Parser Type
 typeParser = (Primitive <$> try primitiveType) <|> fmap Composite pascalCaseIdentifier

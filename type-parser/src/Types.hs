@@ -3,16 +3,13 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE DeriveGeneric #-}
 
-module Types where
-
-import Data.Char
-import Data.Foldable
-import Data.List
+module Types (Identifier, TypeDef(..), TypeParts(..), Type(..), PrimitiveType(..), FunDef(..), DefFile(..), decodeType, writeDefFile) where
 
 import Data.Aeson
 import Data.Aeson.Encode.Pretty
 import Data.ByteString.Lazy.Char8 (pack)
 import Data.ByteString.Lazy (writeFile)
+import Prelude hiding (writeFile)
 
 import GHC.Generics
 
@@ -20,7 +17,7 @@ type Identifier = [String]
 data TypeDef = TypeDef { typeName :: Identifier, parts :: TypeParts } deriving (Eq, Show)
 data TypeParts = SumParts [(Identifier,Type)] | ProdParts [(Identifier,Type)] | Unit deriving (Eq, Show)
 data Type = Primitive PrimitiveType | Composite Identifier deriving (Eq, Generic, Show)
-data PrimitiveType = Int32 deriving (Eq, Generic, Show)
+data PrimitiveType = Int32 | Int64 | Char | Array Type deriving (Eq, Generic, Show)
 
 data FunDef = FunDef { funName :: Identifier, source :: Type, target :: Type } deriving (Eq, Generic, Show)
 
@@ -29,10 +26,8 @@ data DefFile = DefFile { libName :: Identifier, funDefs :: [FunDef], typeDefs ::
 decodeType :: String -> Maybe DefFile
 decodeType = decode . pack
 
-toTypeDef :: Identifier -> Maybe [(Identifier,Type)] -> Maybe [(Identifier,Type)] -> TypeDef
-toTypeDef name (Just x) _ = TypeDef name $ SumParts x
-toTypeDef name _ (Just x) = TypeDef name $ ProdParts x
-toTypeDef name _ _ = TypeDef name Unit
+writeDefFile :: FilePath -> DefFile -> IO ()
+writeDefFile path = writeFile path . encodePretty
 
 instance ToJSON TypeDef where
   toJSON x = object ["name" .= typeName x, partsType .= parts x]
@@ -50,6 +45,11 @@ instance FromJSON TypeDef where
   parseJSON = withObject "TypeDef" $ \v ->
     toTypeDef <$> v .: "name" <*> v .:? "sumParts" <*> v .:? "prodParts"
 
+toTypeDef :: Identifier -> Maybe [(Identifier,Type)] -> Maybe [(Identifier,Type)] -> TypeDef
+toTypeDef name (Just x) _ = TypeDef name $ SumParts x
+toTypeDef name _ (Just x) = TypeDef name $ ProdParts x
+toTypeDef name _ _ = TypeDef name Unit
+
 instance FromJSON FunDef
 instance ToJSON FunDef
 
@@ -61,27 +61,3 @@ instance ToJSON Type
 
 instance FromJSON PrimitiveType
 instance ToJSON PrimitiveType
-
-
-writeDefFile :: FilePath -> DefFile -> IO ()
-writeDefFile path = Data.ByteString.Lazy.writeFile path . encodePretty
-
-title :: String -> String
-title (c:cs) = toUpper c : cs
-title [] = []
-
-upper :: String -> String
-upper = fmap toUpper
-
-camelCase :: Identifier -> String
-camelCase (n:ns) = n ++ pascalCase ns
-camelCase [] = []
-
-snakeCase :: Identifier -> String
-snakeCase = intercalate "_"
-
-screamingSnakeCase :: Identifier -> String
-screamingSnakeCase = intercalate "_" . fmap upper
-
-pascalCase :: Identifier -> String
-pascalCase = fold . fmap title

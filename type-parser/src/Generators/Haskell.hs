@@ -3,6 +3,7 @@
 
 module Generators.Haskell where
 
+import Generators.General
 import Text.Printf
 import Data.List
 import Types
@@ -29,7 +30,10 @@ createHaskellFile (DefFile libName funDefs typeDefs) = printf "%s%s\n\n\n%s\n"
 
 typeToHaskell :: Type -> String
 typeToHaskell (Primitive Int32) = "Int32"
-typeToHaskell (Composite ident) = camelCase ident
+typeToHaskell (Primitive Int64) = "Int64"
+typeToHaskell (Primitive Char) = "Char"
+typeToHaskell (Primitive (Array t)) = printf "[%s]" $ typeToHaskell t
+typeToHaskell (Composite ident) = pascalCase ident
 
 funDefToText :: FunDef -> String
 funDefToText (FunDef name source target) = intercalate "\n" [printf

@@ -3,12 +3,13 @@
 
 module Generators.Rust where
 
+import Generators.General
 import Control.Monad
 import Text.Printf
 import Types
 
 indent :: Int -> [String] -> [String]
-indent i = fmap $ ((++) $ join (replicate i "    "))
+indent i = fmap $ (++) (join (replicate i "    "))
 
 header :: [String]
 header = [
@@ -96,7 +97,7 @@ foreignFunctionsDefsFooter = [
   "}"]
 
 foreignFunctionDefs :: [FunDef] -> [String]
-foreignFunctionDefs funDefs = foreignFunctionsDefsHeader ++ (indent 2 $ (funDefs >>= foreignFunctionDef)) ++ foreignFunctionsDefsFooter
+foreignFunctionDefs funDefs = foreignFunctionsDefsHeader ++ indent 2 (funDefs >>= foreignFunctionDef) ++ foreignFunctionsDefsFooter
 
 functionDef :: FunDef -> [String]
 functionDef (FunDef name source target) = [
