@@ -1,92 +1,64 @@
-{-# LANGUAGE ForeignFunctionInterface #-}
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE DefaultSignatures #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE PolyKinds #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Tenkei where
 
-import Foreign
-import Foreign.C
-import Foreign.Ptr
-
 import Data.CBOR
-import Data.Binary.CBOR
-
-import Data.ByteString.Lazy (ByteString, unpack, pack)
-
-import Data.Binary.Put
-import Data.Binary.Get
-
 import Data.Maybe
-
-import GHC.Generics
-
-call :: (Tenkei a, Tenkei b) => (Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()) -> (Ptr Word8 -> CSize -> IO ()) -> a -> IO b
-call function free input | bytes <- cborToBinary $ serialize input = withArray bytes $ \ptr -> (alloca (\res_ptr -> alloca (\res_size ->
-                    do
-                        function ptr (fromIntegral (length bytes)) res_ptr res_size
-                        res_ptr' <- peek res_ptr
-                        res_size' <- peek res_size
-                        res <- peekArray (fromEnum res_size') res_ptr'
-                        free res_ptr' res_size'
-                        return $ deserialize $ binaryToCBOR res
-                    )))
-
-cborToBinary :: CBOR -> [Word8]
-cborToBinary = unpack . runPut . putCBOR
-
-binaryToCBOR :: [Word8] -> CBOR
-binaryToCBOR = runGet getCBOR . pack
+import Generics.SOP
 
 class Tenkei a where
   serialize :: a -> CBOR
-  default serialize :: (Generic a, Tenkei' (Rep a)) => a -> CBOR
-  serialize = serialize' . from
+  default serialize :: (Generic a, All2 Tenkei (Code a)) => a -> CBOR
+  serialize = serializeS 0 . from
 
   deserialize :: CBOR -> a
-  default deserialize :: (Generic a, Tenkei' (Rep a)) => CBOR -> a
-  deserialize = to . deserialize'
+  default deserialize :: (Generic a, All2 Tenkei (Code a)) => CBOR -> a
+  deserialize = to . deserializeS
 
-instance Tenkei Int32 where
+instance Tenkei Int where
   serialize i | i >= 0 = CBOR_UInt $ fromIntegral i
               | otherwise = CBOR_SInt $ fromIntegral i
   deserialize (CBOR_UInt i) = fromIntegral i
   deserialize (CBOR_SInt i) = fromIntegral i
+  deserialize _ = error "Error while interpreting CBOR: not an integer"
 
-data DummySum a = Dummy1 Int32 | Dummy2 Int32 | Dummy3 a deriving (Show,Generic)
-data DummyProduct = Dummy Int32 (DummySum Int32) deriving (Show,Generic)
-instance (Tenkei a) => Tenkei (DummySum a)
-instance Tenkei DummyProduct
+serializeS :: All2 Tenkei xss => Integer -> SOP I xss -> CBOR
+serializeS layer (SOP (Z xs)) = CBOR_Array [CBOR_UInt layer, CBOR_Array $ serializeP xs]
+serializeS layer (SOP (S xss)) = serializeS (layer + 1) $ SOP xss
 
-class Tenkei' a where
-  serialize' :: a t -> CBOR
-  deserialize' :: CBOR -> a t
+serializeP :: (All Tenkei xs) => NP I xs -> [CBOR]
+serializeP Nil = []
+serializeP (I x :* xss) = serialize x : serializeP xss
 
-instance Tenkei' V1 where
-  serialize' x = undefined
-  deserialize' x = undefined
+deserializeS :: (All2 Tenkei xss, SListI xss) => CBOR -> SOP I xss
+deserializeS (CBOR_Array [CBOR_UInt n, CBOR_Array x]) = SOP $ helper2 $ catMaybes $ hcollapse $ sumContents injections countList
+  where
+    allTC = Proxy :: Proxy (All Tenkei)
+    sumContents :: (All2 Tenkei xss) => NP (Injection (NP I) xss) xss -> NP (K Integer) xss -> NP (K (Maybe ((NS (NP I)) xss))) xss
+    sumContents = hczipWith allTC helper
 
-instance Tenkei' U1 where
-  serialize' U1 = CBOR_NULL
-  deserialize' CBOR_NULL = U1
+    helper :: (All Tenkei xs) => Injection (NP I) xss xs -> K Integer xs -> K (Maybe (NS (NP I) xss)) xs
+    helper (Fn i) (K k) | k == n = K $ Just $ unK $ i $ deserializeP x
+                        | otherwise = K Nothing
 
-data EncancedCBOR = Sum CBOR | Product CBOR 
+    helper2 :: [a] -> a
+    helper2 [y] = y
+    helper2 _ = error "Error while interpreting CBOR in sum type"
+deserializeS _ = error "Error while interpreting CBOR in sum type"
 
-instance (Tenkei' f, Tenkei' g) => Tenkei' (f :+: g) where
-  serialize' (L1 x) = CBOR_Array [CBOR_UInt 0, serialize' x]
-  serialize' (R1 x) = CBOR_Array [CBOR_UInt 1, serialize' x]
-  deserialize' (CBOR_Array [CBOR_UInt 0, cbor]) = L1 $ deserialize' cbor
-  deserialize' (CBOR_Array [CBOR_UInt 1, cbor]) = R1 $ deserialize' cbor
+countList :: forall xss. SListI xss => NP (K Integer) xss
+countList = case sList :: SList xss of
+  SNil -> Nil
+  SCons -> K 0 :* hmap (\(K i) -> K $ i+1) countList
 
-instance (Tenkei' f, Tenkei' g) => Tenkei' (f :*: g) where
-  serialize' (x :*: y) = CBOR_Array [serialize' x, serialize' y]
-  deserialize' (CBOR_Array [x, y]) = (deserialize' x) :*: (deserialize' y)
-
-instance (Tenkei c) => Tenkei' (K1 i c) where
-  serialize' (K1 x) = serialize x
-  deserialize' = K1 . deserialize
-
-instance (Tenkei' f) => Tenkei' (M1 i t f) where
-  serialize' (M1 x) = serialize' x
-  deserialize' = M1 . deserialize'
+deserializeP :: forall xs. (SListI xs, All Tenkei xs) => [CBOR] -> NP I xs
+deserializeP [] = case sList :: SList xs of
+  SNil -> Nil
+  SCons -> error "Error while interpreting CBOR in product type"
+deserializeP (y : ys) = case sList :: SList xs of
+  SNil -> error "Error while interpreting CBOR in product type"
+  SCons -> I (deserialize y) :* deserializeP ys
