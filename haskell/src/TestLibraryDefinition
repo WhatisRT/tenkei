@@ -1,0 +1,70 @@
+{
+    "typeDefs": [],
+    "libName": [
+        "test",
+        "library"
+    ],
+    "funDefs": [
+        {
+            "funName": [
+                "modify",
+                "array"
+            ],
+            "source": {
+                "tag": "Primitive",
+                "contents": {
+                    "tag": "Array",
+                    "contents": {
+                        "tag": "Composite",
+                        "contents": [
+                            "int"
+                        ]
+                    }
+                }
+            },
+            "target": {
+                "tag": "Primitive",
+                "contents": {
+                    "tag": "Array",
+                    "contents": {
+                        "tag": "Composite",
+                        "contents": [
+                            "int"
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "funName": [
+                "invert",
+                "string",
+                "case"
+            ],
+            "source": {
+                "tag": "Primitive",
+                "contents": {
+                    "tag": "Array",
+                    "contents": {
+                        "tag": "Primitive",
+                        "contents": {
+                            "tag": "Char"
+                        }
+                    }
+                }
+            },
+            "target": {
+                "tag": "Primitive",
+                "contents": {
+                    "tag": "Array",
+                    "contents": {
+                        "tag": "Primitive",
+                        "contents": {
+                            "tag": "Char"
+                        }
+                    }
+                }
+            }
+        }
+    ]
+}
