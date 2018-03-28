@@ -23,16 +23,16 @@ type ErrorIO = ExceptT String IO
 customError :: IO a -> (IOError -> String) -> ErrorIO a
 customError io f = ExceptT $ first f <$> tryIOError io
 
-actions :: [(String, String, [String] -> ErrorIO ())]
+actions :: [(String, String, ErrorIO ())]
 actions = [
-  ("create", "Create language bindings from a library definition", createCode),
+  ("library", "Generate language bindings from a library definition", generateLib),
   ("help", "Print this text", help),
   ("parse", "Parse sourcecode to generate a library definition", parse)
           ]
 
 languages :: [(String,(String -> Maybe DefFile, DefFile -> String))]
 languages = [
-  ("haskell", (parseHaskell, createHaskellFile)),
+  ("haskell", (parseHaskell, generateHaskellLib)),
   ("rust", (parseRust, createRustFile))]
 
 fromJustError :: Maybe a -> String -> ErrorIO a
@@ -45,46 +45,75 @@ fillRight s i | length s < i = fillRight (s ++ " ") i
 
 selectLanguage :: String -> ErrorIO (String -> Maybe DefFile, DefFile -> String)
 selectLanguage lang | (Just translators) <- lookup lang languages = return translators
-                    | otherwise = throwError ("Unsupported language! Supported languages are:\n"
+                    | otherwise = throwError ("Unsupported language! Supported languages are: "
                                               ++ intercalate ", " (fst <$> languages))
 
 main :: IO ()
 main = do
-  args <- getArgs
-  result <- runExceptT $ case args of
-    (cmd:rest) -> (maybe help (\(_,_,f) -> f) $ find (\(c,_,_) -> cmd == c) actions) rest
-    _ -> help args
+  result <- runExceptT $ do
+    cmd <- getCmd
+    maybe help2 (\(_,_,f) -> f) $ find (\(c,_,_) -> cmd == c) actions
 
   case result of
-    (Left s) -> putStrLn s
+    (Left s) -> putStrLn (s ++ "\n\n") >> help'
     (Right _) -> return ()
 
-createCode :: [String] -> ErrorIO ()
-createCode args =
+getCmd :: ErrorIO String
+getCmd = do
+  args <- liftIO getArgs
   case args of
-    [language,sourceFile,targetFile] -> do
-      (_,codeGen) <- selectLanguage language
-      contents <- customError (readFile sourceFile) (\e -> "Error while reading " ++ sourceFile ++ ":\n" ++ show e)
-      parsed <- fromJustError (decodeType contents) "Error while parsing the source file!"
-      let newFile = codeGen parsed
-      customError (writeFile targetFile newFile) (\e -> "Error while writing " ++ targetFile ++ ":\n" ++ show e)
+    (x : _) -> return x
+    _ -> ExceptT $ return $ Left "No command given"
 
-    _ -> liftIO $ putStrLn "The syntax for this command is: tenkei create [language] [source] [target]"
+getLang :: ErrorIO String
+getLang = do
+  args <- liftIO getArgs
+  flip fromJustError "No language specified" $ case args of
+    (_ : x : _) -> Just x
+    _ -> Nothing
 
-help :: [String] -> ErrorIO ()
-help _ = liftIO $ putStr $ intercalate "\n" $ [
+getSource :: ErrorIO String
+getSource = do
+  args <- liftIO getArgs
+  join $ flip fromJustError "No source file specified" $ case args of
+    (_ : _ : x : _) -> Just $ customError (readFile x) (\e -> "Error while reading " ++ x ++ ":\n" ++ show e)
+    _ -> Nothing
+
+writeTarget :: String -> ErrorIO ()
+writeTarget contents = do
+  args <- liftIO getArgs
+  case args of
+    (_ : _ : _ : x : _) -> customError (writeFile x contents) (\e -> "Error while writing file " ++ x ++ ":\n" ++ show e)
+    _ -> liftIO $ putStr contents
+
+generateLib :: ErrorIO ()
+generateLib = do
+  lang <- getLang
+  (_,codeGen) <- selectLanguage lang
+  src <- getSource
+  parsed <- fromJustError (decodeType src) "Error while parsing the source file!"
+  writeTarget $ codeGen parsed
+
+help :: ErrorIO ()
+help = liftIO help'
+
+help' :: IO ()
+help' = putStr $ intercalate "\n" $ [
   "Tool for creating language bindings.",
+  "Usage: tenkei [command] [language] [source] [target]",
   "",
   "Commands:"
-  ] ++ fmap (\(c,h,_) -> printf "  %s%s" (fillRight c 8) h) actions ++ [""]
+  ] ++ fmap (\(c,h,_) -> printf "  %s%s" (fillRight c 10) h) actions ++ [""]
 
-parse :: [String] -> ErrorIO ()
-parse args =
-  case args of
-    [language,sourceFile,targetFile] -> do
-      (parser,_) <- selectLanguage language
-      contents <- customError (readFile sourceFile) (\e -> "Error while reading " ++ sourceFile ++ ":\n" ++ show e)
-      parsed <- fromJustError (parser contents) "Error while parsing the source file!"
-      customError (writeDefFile targetFile parsed) (\e -> "Error while writing " ++ targetFile ++ ":\n" ++ show e)
+help2 :: ErrorIO ()
+help2 = do
+  cmd <- getCmd
+  liftIO (putStr ("Unrecognized command \"" ++ cmd ++ "\"! \n \n")) >> help
 
-    _ -> liftIO $ putStrLn "The syntax for this command is: tenkei parse [language] [source] [target]"
+parse :: ErrorIO ()
+parse = do
+  lang <- getLang
+  (parser,_) <- selectLanguage lang
+  src <- getSource
+  parsed <- fromJustError (parser src) "Error while parsing the source file!"
+  writeTarget $ generateDefFile parsed

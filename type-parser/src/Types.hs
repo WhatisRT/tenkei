@@ -3,13 +3,11 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE DeriveGeneric #-}
 
-module Types (Identifier, TypeDef(..), TypeParts(..), Type(..), PrimitiveType(..), FunDef(..), DefFile(..), decodeType, writeDefFile) where
+module Types (Identifier, TypeDef(..), TypeParts(..), Type(..), PrimitiveType(..), FunDef(..), DefFile(..), decodeType, generateDefFile) where
 
 import Data.Aeson
 import Data.Aeson.Encode.Pretty
-import Data.ByteString.Lazy.Char8 (pack)
-import Data.ByteString.Lazy (writeFile)
-import Prelude hiding (writeFile)
+import Data.ByteString.Lazy.Char8 (pack, unpack)
 
 import GHC.Generics
 
@@ -26,8 +24,8 @@ data DefFile = DefFile { libName :: Identifier, funDefs :: [FunDef], typeDefs ::
 decodeType :: String -> Maybe DefFile
 decodeType = decode . pack
 
-writeDefFile :: FilePath -> DefFile -> IO ()
-writeDefFile path = writeFile path . encodePretty
+generateDefFile :: DefFile -> String
+generateDefFile = unpack . encodePretty
 
 instance ToJSON TypeDef where
   toJSON x = object ["name" .= typeName x, partsType .= parts x]
