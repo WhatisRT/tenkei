@@ -16,10 +16,11 @@ libHeader libName =
   , ""
   , "import Foreign"
   , "import Foreign.C"
-  , "import Foreign.Ptr"
   , "import System.IO.Unsafe"
   , ""
-  , "import Tenkei"
+  , "import FFIWrappers"
+  , ""
+  , "foreign import ccall \"tenkei_free\" tenkei_free :: Ptr Word8 -> CSize -> IO ()"
   , ""
   ]
 
@@ -55,7 +56,7 @@ generateHaskellLib = intercalate "\n" . generateHaskellLib'
 
 generateHaskellLib' :: DefFile -> [String]
 generateHaskellLib' (DefFile libName funDefs typeDefs) =
-  libHeader (camelCase libName) ++ (funDefs >>= funDefToText) ++ (typeDefs >>= typeDefToText)
+  libHeader (pascalCase libName) ++ (funDefs >>= funDefToText) ++ (typeDefs >>= typeDefToText)
 
 generateHaskellInterface :: DefFile -> String
 generateHaskellInterface = intercalate "\n" . generateHaskellInterface'
@@ -85,7 +86,7 @@ funDefToText (FunDef name source target) =
       (foreignFunctionId name)
       (foreignFunctionId name)
   , printf "%s :: %s -> %s" (functionId name) (typeToHaskell source) (typeToHaskell target)
-  , printf "%s = unsafePerformIO . (call foreign_%s)" (functionId name) (foreignFunctionId name)
+  , printf "%s = call foreign_%s tenkei_free" (functionId name) (foreignFunctionId name)
   , ""
   ]
 

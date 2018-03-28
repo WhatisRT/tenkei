@@ -6,6 +6,7 @@ module FFIWrappers
 
 import Foreign
 import Foreign.C
+import System.IO.Unsafe
 
 import Data.Binary.CBOR
 import Data.CBOR
@@ -17,8 +18,8 @@ import Data.ByteString.Lazy (pack, unpack)
 
 import Tenkei
 
-call :: (Tenkei a, Tenkei b) => (Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()) -> (Ptr Word8 -> CSize -> IO ()) -> a -> IO b
-call function freeFunction input =
+callIO :: (Tenkei a, Tenkei b) => (Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()) -> (Ptr Word8 -> CSize -> IO ()) -> a -> IO b
+callIO function freeFunction input =
   let bytes = cborToBinary $ serialize input
    in withArray bytes $ \ptr ->
         (alloca
@@ -31,6 +32,9 @@ call function freeFunction input =
                    res <- peekArray (fromEnum res_size') res_ptr'
                    freeFunction res_ptr' res_size'
                    return $ deserialize $ binaryToCBOR res)))
+
+call :: (Tenkei a, Tenkei b) => (Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()) -> (Ptr Word8 -> CSize -> IO ()) -> a -> b
+call f freeFunction = unsafePerformIO . callIO f freeFunction
 
 offer :: (Tenkei a, Tenkei b) => (a -> b) -> Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
 offer f args argn res resn = do
