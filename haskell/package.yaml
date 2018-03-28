@@ -26,11 +26,14 @@ library:
   source-dirs:
   - src
   - ../tenkei-haskell/src
+  ghc-options:
 
 executables:
   haskell-test-lib-exe:
     main:                Main.hs
-    source-dirs:         app
+    source-dirs:
+    - app
+    - ../tenkei-haskell/src
     ghc-options:
     - -threaded
     - -rtsopts
