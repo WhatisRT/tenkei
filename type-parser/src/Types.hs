@@ -48,7 +48,7 @@ data PrimitiveType
 
 data FunDef = FunDef
   { funName :: Identifier
-  , source :: Type
+  , sources :: [Type]
   , target :: Type
   } deriving (Eq, Generic, Show)
 

@@ -10,18 +10,20 @@
                 "modify",
                 "array"
             ],
-            "source": {
-                "tag": "Primitive",
-                "contents": {
-                    "tag": "Array",
+            "sources": [
+                {
+                    "tag": "Primitive",
                     "contents": {
-                        "tag": "Composite",
-                        "contents": [
-                            "int"
-                        ]
+                        "tag": "Array",
+                        "contents": {
+                            "tag": "Composite",
+                            "contents": [
+                                "int"
+                            ]
+                        }
                     }
                 }
-            },
+            ],
             "target": {
                 "tag": "Primitive",
                 "contents": {
@@ -41,18 +43,20 @@
                 "string",
                 "case"
             ],
-            "source": {
-                "tag": "Primitive",
-                "contents": {
-                    "tag": "Array",
+            "sources": [
+                {
+                    "tag": "Primitive",
                     "contents": {
-                        "tag": "Primitive",
+                        "tag": "Array",
                         "contents": {
-                            "tag": "Char"
+                            "tag": "Primitive",
+                            "contents": {
+                                "tag": "Char"
+                            }
                         }
                     }
                 }
-            },
+            ],
             "target": {
                 "tag": "Primitive",
                 "contents": {
@@ -64,6 +68,31 @@
                         }
                     }
                 }
+            }
+        },
+        {
+            "funName": [
+                "exponentiate"
+            ],
+            "sources": [
+                {
+                    "tag": "Composite",
+                    "contents": [
+                        "int"
+                    ]
+                },
+                {
+                    "tag": "Composite",
+                    "contents": [
+                        "int"
+                    ]
+                }
+            ],
+            "target": {
+                "tag": "Composite",
+                "contents": [
+                    "int"
+                ]
             }
         }
     ]

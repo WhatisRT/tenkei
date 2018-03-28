@@ -74,7 +74,7 @@ function = do
   (_, source) <- parens qualifiedTypeParser1
   _ <- symbol "->"
   target <- typeParser
-  return $ FunDef name source target
+  return $ FunDef name [source] target
 
 typePartsSum :: Parser TypeDef
 typePartsSum = do

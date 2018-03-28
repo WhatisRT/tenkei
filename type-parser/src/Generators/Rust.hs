@@ -102,7 +102,7 @@ foreignFunctionDefs :: [FunDef] -> [String]
 foreignFunctionDefs funDefs = foreignFunctionsDefsHeader ++ indent 2 (funDefs >>= foreignFunctionDef) ++ foreignFunctionsDefsFooter
 
 functionDef :: FunDef -> [String]
-functionDef (FunDef name source target) =
+functionDef (FunDef name [source] target) =
   [ printf "pub fn %s(x: %s) -> %s {" (function name) (type_ source) (type_ target)
   , "    fn wrapper(input: &[u8]) -> Buffer {"
   , "        let mut buffer = Buffer::new();"

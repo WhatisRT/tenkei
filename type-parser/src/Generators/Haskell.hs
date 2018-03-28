@@ -17,7 +17,9 @@ libHeader libName =
   , "import Foreign"
   , "import Foreign.C"
   , ""
+  , "import Data.CBOR"
   , "import FFIWrappers"
+  , "import Tenkei"
   , ""
   , "foreign import ccall \"tenkei_free\" tenkei_free :: Ptr Word8 -> CSize -> IO ()"
   , ""
@@ -32,7 +34,9 @@ interfaceHeader libName =
   , "import Foreign"
   , "import Foreign.C"
   , ""
+  , "import Data.CBOR"
   , "import FFIWrappers"
+  , "import Tenkei"
   , "import " ++ libName
   , ""
   , "tenkei_free :: Ptr Word8 -> CSize -> IO ()"
@@ -71,23 +75,33 @@ typeToHaskell (Primitive (Array t)) = printf "[%s]" $ typeToHaskell t
 typeToHaskell (Composite ident) = pascalCase ident
 
 funDefToExport :: FunDef -> [String]
-funDefToExport (FunDef name _ _) =
+funDefToExport (FunDef name sources _) =
   [ printf "%s :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()" $ foreignFunctionId name
-  , printf "%s = offer %s" (foreignFunctionId name) $ functionId name
+  , funImpl
   , printf "foreign export ccall %s :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()" $ foreignFunctionId name
   , ""
   ]
+  where
+    argList = fmap (("arg" ++) . show) [1..length sources]
+    funImpl = case length sources of
+      1 -> printf "%s = offer %s" (foreignFunctionId name) $ functionId name
+      _ -> printf "%s = offerCBOR (\\(CBOR_Array [%s]) -> serialize $ %s %s)" (foreignFunctionId name) (intercalate ", " argList) (functionId name) (unwords $ fmap (\s -> "(deserialize " ++ s ++ ")") argList)
 
 funDefToText :: FunDef -> [String]
-funDefToText (FunDef name source target) =
+funDefToText (FunDef name sources target) =
   [ printf
       "foreign import ccall \"%s\" foreign_%s :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()"
       (foreignFunctionId name)
       (foreignFunctionId name)
-  , printf "%s :: %s -> %s" (functionId name) (typeToHaskell source) (typeToHaskell target)
-  , printf "%s = call foreign_%s tenkei_free" (functionId name) (foreignFunctionId name)
+  , printf "%s :: %s -> %s" (functionId name) (intercalate " -> " $ fmap typeToHaskell sources) (typeToHaskell target)
+  , funImpl
   , ""
   ]
+  where
+    argList = fmap (("arg" ++) . show) [1..length sources]
+    funImpl = case length sources of
+          1 -> printf "%s = call foreign_%s tenkei_free" (functionId name) (foreignFunctionId name)
+          _ -> printf "%s %s = deserialize $ callCBOR foreign_%s tenkei_free $ CBOR_Array [%s]" (functionId name) (unwords argList) (foreignFunctionId name) $ intercalate ", " $ fmap ("serialize " ++) argList
 
 typeDefToText :: TypeDef -> [String]
 typeDefToText (TypeDef name (SumParts parts)) =

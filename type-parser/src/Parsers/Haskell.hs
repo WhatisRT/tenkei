@@ -72,10 +72,8 @@ function :: Parser FunDef
 function = do
   name <- lexeme camelCaseIdentifier
   _ <- symbol "::"
-  source <- lexeme typeParser
-  _ <- symbol "->"
-  target <- lexeme typeParser
-  return $ FunDef name source target
+  types <- sepBy1 (lexeme typeParser) $ symbol "->"
+  return $ FunDef name (init types) $ last types
 
 typePartsSum :: Parser TypeParts
 typePartsSum = fmap SumParts $ sepBy1 constructorParser $ lexeme $ string "|"
