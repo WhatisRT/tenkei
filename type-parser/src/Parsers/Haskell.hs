@@ -1,8 +1,10 @@
-{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE GADTs #-}
 
-module Parsers.Haskell (parseHaskell) where
+module Parsers.Haskell
+  ( parseHaskell
+  ) where
 
 import Control.Monad
 import Data.Either
@@ -60,10 +62,8 @@ moduleDef = do
 
 primitiveType :: Parser PrimitiveType
 primitiveType =
-  (string "Int32" >> return Int32)
-  <|> (string "Int64" >> return Int64)
-  <|> (string "Char" >> return Char)
-  <|> (Array <$> brackets typeParser)
+  (string "Int32" >> return Int32) <|> (string "Int64" >> return Int64) <|> (string "Char" >> return Char) <|>
+  (Array <$> brackets typeParser)
 
 typeParser :: Parser Type
 typeParser = (Primitive <$> try primitiveType) <|> fmap Composite pascalCaseIdentifier
@@ -79,20 +79,22 @@ function = do
 
 typePartsSum :: Parser TypeParts
 typePartsSum = fmap SumParts $ sepBy1 constructorParser $ lexeme $ string "|"
-  where constructorParser = do
-          identifier <- lexeme pascalCaseIdentifier
-          typeName <- lexeme typeParser
-          return (identifier, typeName)
+  where
+    constructorParser = do
+      identifier <- lexeme pascalCaseIdentifier
+      typeName <- lexeme typeParser
+      return (identifier, typeName)
 
 typePartsProduct :: Parser TypeParts
 typePartsProduct = do
   _ <- lexeme pascalCaseIdentifier
   braces (fmap ProdParts $ sepBy1 constructorParser $ lexeme $ string ",")
-  where constructorParser = do
-          identifier <- lexeme camelCaseIdentifier
-          _ <- lexeme (string "::")
-          typeName <- lexeme typeParser
-          return (identifier,typeName)
+  where
+    constructorParser = do
+      identifier <- lexeme camelCaseIdentifier
+      _ <- lexeme (string "::")
+      typeName <- lexeme typeParser
+      return (identifier, typeName)
 
 typeDef :: Parser TypeDef
 typeDef = do
@@ -125,4 +127,3 @@ codeBlock = do
   l <- unindentedLine <|> emptyLine
   ls <- many (indentedLine <|> emptyLine)
   return (intercalate "\n" (l : ls))
-

@@ -1,11 +1,11 @@
-{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies #-}
 
 module Parsers.Rust where --(parseRust) where
 
-import Data.Either.Combinators
 import Data.Either
+import Data.Either.Combinators
 
 import Text.Megaparsec
 import Text.Megaparsec.Char
@@ -48,7 +48,6 @@ moduleDef = do
   eof
   return moduleName
  -}
-
 primitiveType :: Parser PrimitiveType
 primitiveType = (string "i32" >> return Int32)
 
@@ -72,7 +71,7 @@ function :: Parser FunDef
 function = do
   _ <- symbol "fn"
   name <- lexeme snakeCaseIdentifier
-  (_,source) <- parens qualifiedTypeParser1
+  (_, source) <- parens qualifiedTypeParser1
   _ <- symbol "->"
   target <- typeParser
   return $ FunDef name source target
@@ -94,7 +93,12 @@ typePartsProduct = do
 typeDef :: Parser TypeDef
 typeDef = try typePartsProduct <|> typePartsSum
 
-data RustBlock = OneLinePub | MultiLinePub String String | Nested deriving Show
+data RustBlock
+  = OneLinePub
+  | MultiLinePub String
+                 String
+  | Nested
+  deriving (Show)
 
 oneLinePubBlock :: Parser RustBlock
 oneLinePubBlock = do
