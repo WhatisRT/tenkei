@@ -25,15 +25,16 @@ customError io f = ExceptT $ first f <$> tryIOError io
 
 actions :: [(String, String, ErrorIO ())]
 actions = [
-  ("library", "Generate language bindings from a library definition", generateLib),
   ("help", "Print this text", help),
+  ("interface", "Generate a tenkei interface from a library definition", generateInterface),
+  ("library", "Generate language bindings from a library definition", generateLib),
   ("parse", "Parse sourcecode to generate a library definition", parse)
           ]
 
-languages :: [(String,(String -> Maybe DefFile, DefFile -> String))]
+languages :: [(String,(String -> Maybe DefFile, DefFile -> String, DefFile -> String))]
 languages = [
-  ("haskell", (parseHaskell, generateHaskellLib)),
-  ("rust", (parseRust, createRustFile))]
+  ("haskell", (parseHaskell, generateHaskellLib, generateHaskellInterface)),
+  ("rust", (parseRust, createRustFile, error "Rust tenkei library generation not yet supported!"))]
 
 fromJustError :: Maybe a -> String -> ErrorIO a
 fromJustError (Just x) _ = return x
@@ -43,7 +44,7 @@ fillRight :: String -> Int -> String
 fillRight s i | length s < i = fillRight (s ++ " ") i
               | otherwise = s
 
-selectLanguage :: String -> ErrorIO (String -> Maybe DefFile, DefFile -> String)
+selectLanguage :: String -> ErrorIO (String -> Maybe DefFile, DefFile -> String, DefFile -> String)
 selectLanguage lang | (Just translators) <- lookup lang languages = return translators
                     | otherwise = throwError ("Unsupported language! Supported languages are: "
                                               ++ intercalate ", " (fst <$> languages))
@@ -88,8 +89,16 @@ writeTarget contents = do
 
 generateLib :: ErrorIO ()
 generateLib = do
-  lang <- getLang
-  (_,codeGen) <- selectLanguage lang
+  (_,codeGen,_) <- getLang >>= selectLanguage
+  generateCode codeGen
+
+generateInterface :: ErrorIO ()
+generateInterface = do
+  (_,_,codeGen) <- getLang >>= selectLanguage
+  generateCode codeGen
+
+generateCode :: (DefFile -> String) -> ErrorIO ()
+generateCode codeGen = do
   src <- getSource
   parsed <- fromJustError (decodeType src) "Error while parsing the source file!"
   writeTarget $ codeGen parsed
@@ -113,7 +122,7 @@ help2 = do
 parse :: ErrorIO ()
 parse = do
   lang <- getLang
-  (parser,_) <- selectLanguage lang
+  (parser,_,_) <- selectLanguage lang
   src <- getSource
   parsed <- fromJustError (parser src) "Error while parsing the source file!"
   writeTarget $ generateDefFile parsed

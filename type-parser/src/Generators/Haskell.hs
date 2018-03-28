@@ -3,13 +3,13 @@
 
 module Generators.Haskell where
 
+import Data.List
 import Generators.General
 import Text.Printf
-import Data.List
 import Types
 
-header :: String -> String
-header libName = intercalate "\n" [
+libHeader :: String -> [String]
+libHeader libName = [
   "{-# LANGUAGE ForeignFunctionInterface #-}",
   "",
   "module " ++ libName ++ " where",
@@ -20,13 +20,50 @@ header libName = intercalate "\n" [
   "import System.IO.Unsafe",
   "",
   "import Tenkei",
-  "\n"]
+  ""]
 
-createHaskellFile :: DefFile -> String
-createHaskellFile (DefFile libName funDefs typeDefs) = printf "%s%s\n\n\n%s\n"
-  (header $ camelCase libName)
-  (intercalate "\n\n" $ fmap funDefToText funDefs)
-  (intercalate "\n" $ fmap typeDefToText typeDefs)
+interfaceHeader :: String -> [String]
+interfaceHeader libName = [
+  "{-# LANGUAGE ForeignFunctionInterface #-}",
+  "",
+  "module " ++ libName ++ "Tenkei where",
+  "",
+  "import Foreign",
+  "import Foreign.C",
+  "",
+  "import FFIWrappers",
+  "import " ++ libName,
+  "",
+  "tenkei_free :: Ptr Word8 -> CSize -> IO ()",
+  "tenkei_free = tenkeiFree",
+  "foreign export ccall tenkei_free :: Ptr Word8 -> CSize -> IO ()",
+  ""]
+
+typeId :: Identifier -> String
+typeId = pascalCase
+
+functionId :: Identifier -> String
+functionId = camelCase
+
+foreignFunctionId :: Identifier -> String
+foreignFunctionId = ("tenkei_" ++) . snakeCase
+
+generateHaskellLib :: DefFile -> String
+generateHaskellLib = intercalate "\n" . generateHaskellLib'
+
+generateHaskellLib' :: DefFile -> [String]
+generateHaskellLib' (DefFile libName funDefs typeDefs) =
+  libHeader (camelCase libName) ++
+  (funDefs >>= funDefToText) ++
+  (typeDefs >>= typeDefToText)
+
+generateHaskellInterface :: DefFile -> String
+generateHaskellInterface = intercalate "\n" . generateHaskellInterface'
+
+generateHaskellInterface' :: DefFile -> [String]
+generateHaskellInterface' (DefFile libName funDefs _) =
+  interfaceHeader (pascalCase libName) ++
+  (funDefs >>= funDefToExport)
 
 typeToHaskell :: Type -> String
 typeToHaskell (Primitive Int32) = "Int32"
@@ -35,14 +72,24 @@ typeToHaskell (Primitive Char) = "Char"
 typeToHaskell (Primitive (Array t)) = printf "[%s]" $ typeToHaskell t
 typeToHaskell (Composite ident) = pascalCase ident
 
-funDefToText :: FunDef -> String
-funDefToText (FunDef name source target) = intercalate "\n" [printf
-  "foreign import ccall \"%s\" foreign_%s :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()"
-  (snakeCase name)  (snakeCase name),
-  printf "%s :: %s -> %s" (camelCase name) (typeToHaskell source) (typeToHaskell target),
-  printf "%s = unsafePerformIO . (call foreign_%s)" (camelCase name) (snakeCase name)]
+funDefToExport :: FunDef -> [String]
+funDefToExport (FunDef name _ _) = [
+  printf "%s :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()" $ foreignFunctionId name,
+  printf "%s = offer %s" (foreignFunctionId name) $ functionId name,
+  printf "foreign export ccall %s :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()" $ foreignFunctionId name,
+  ""]
 
-typeDefToText :: TypeDef -> String
-typeDefToText (TypeDef name (SumParts parts)) = printf "data %s = %s" (pascalCase name) $ intercalate " | " $ fmap (\(n,t) -> pascalCase n ++ " " ++ typeToHaskell t) parts
-typeDefToText (TypeDef name (ProdParts parts)) = printf "data %s = %s { %s }" (pascalCase name) (pascalCase name) $  intercalate ", " $ fmap (\(n,t) -> camelCase n ++ " :: " ++ typeToHaskell t) parts
-typeDefToText (TypeDef name Unit) = printf "data %s = Unit" (pascalCase name)
+funDefToText :: FunDef -> [String]
+funDefToText (FunDef name source target) = [printf
+  "foreign import ccall \"%s\" foreign_%s :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()"
+  (foreignFunctionId name)  (foreignFunctionId name),
+  printf "%s :: %s -> %s" (functionId name) (typeToHaskell source) (typeToHaskell target),
+  printf "%s = unsafePerformIO . (call foreign_%s)" (functionId name) (foreignFunctionId name),
+  ""]
+
+typeDefToText :: TypeDef -> [String]
+typeDefToText (TypeDef name (SumParts parts)) = [
+  printf "data %s = %s" (typeId name) $ intercalate " | " $ fmap (\(n,t) -> typeId n ++ " " ++ typeToHaskell t) parts]
+typeDefToText (TypeDef name (ProdParts parts)) = [
+  printf "data %s = %s { %s }" (typeId name) (typeId name) $ intercalate ", " $ fmap (\(n,t) -> functionId n ++ " :: " ++ typeToHaskell t) parts]
+typeDefToText (TypeDef name Unit) = [printf "data %s = Unit" (typeId name)]
