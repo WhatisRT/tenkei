@@ -52,7 +52,7 @@ primitiveType :: Parser PrimitiveType
 primitiveType = (string "i32" >> return Int32)
 
 typeParser :: Parser Type
-typeParser = (Primitive <$> try primitiveType) <|> fmap Composite snakeCaseIdentifier
+typeParser = ((Unnamed . Primitive) <$> try primitiveType) <|> fmap Named snakeCaseIdentifier
 
 qualifiedTypeParser1 :: Parser (Identifier, Type)
 qualifiedTypeParser1 = do
@@ -76,21 +76,21 @@ function = do
   target <- typeParser
   return $ FunDef name [source] target
 
-typePartsSum :: Parser TypeDef
+typePartsSum :: Parser NamedTypeDef
 typePartsSum = do
   _ <- symbol "enum"
   name <- lexeme pascalCaseIdentifier
   parts <- braces $ sepEndBy1 qualifiedTypeParser2 $ symbol ","
-  return $ TypeDef name $ SumParts parts
+  return $ NamedTypeDef name $ SumParts parts
 
-typePartsProduct :: Parser TypeDef
+typePartsProduct :: Parser NamedTypeDef
 typePartsProduct = do
   _ <- symbol "struct"
   name <- lexeme pascalCaseIdentifier
   parts <- braces $ sepEndBy1 qualifiedTypeParser1 $ symbol ","
-  return $ TypeDef name $ ProdParts parts
+  return $ NamedTypeDef name $ ProdParts parts
 
-typeDef :: Parser TypeDef
+typeDef :: Parser NamedTypeDef
 typeDef = try typePartsProduct <|> typePartsSum
 
 data RustBlock
