@@ -23,24 +23,29 @@ import GHC.Generics
 
 type Identifier = [String]
 
-data TypeDef = TypeDef
+data NamedTypeDef = NamedTypeDef
   { typeName :: Identifier
-  , parts :: TypeParts
+  , parts :: NamedType
   } deriving (Eq, Show)
 
-data TypeParts
+data Type
+  = Named Identifier
+  | Unnamed UnnamedType
+
+data NamedType
   = SumParts [(Identifier, Type)]
   | ProdParts [(Identifier, Type)]
-  | Unit
-  deriving (Eq, Show)
-
-data Type
-  = Primitive PrimitiveType
-  | Composite Identifier
+  | Opaque
   deriving (Eq, Generic, Show)
 
+data UnnamedType
+  = Any Identifier
+  | PrimitiveType
+
+type Variable = (Identifier, Type)
+
 data PrimitiveType
-  = XUnit
+  = Unit
   | Bool
   | Int8
   | Int16
@@ -55,6 +60,7 @@ data PrimitiveType
   | Float64
   | CodepointUnicode
   | StringUTF8
+  | Function [Variable] Type
   | List Type
   deriving (Eq, Generic, Show)
 
