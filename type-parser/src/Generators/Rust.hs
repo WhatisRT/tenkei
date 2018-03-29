@@ -3,13 +3,12 @@
 
 module Generators.Rust where
 
-import Control.Monad
 import Generators.General
 import Text.Printf
 import Types
 
 indent :: Int -> [String] -> [String]
-indent i = fmap $ (++) (join (replicate i "    "))
+indent = indentStr "    "
 
 header :: [String]
 header =
@@ -55,39 +54,51 @@ header =
   ]
 
 createRustFile :: DefFile -> String
-createRustFile = join . fmap (++ "\n") . generate
+createRustFile = unlines . generate
 
 generate :: DefFile -> [String]
 generate (DefFile _ functions types) = header ++ (types >>= typeDef) ++ foreignFunctionDefs functions ++ (functions >>= functionDef)
 
 primitive :: PrimitiveType -> String
+primitive Unit = "()"
+primitive Bool = "bool"
+primitive Int8 = "i8"
+primitive Int16 = "i16"
 primitive Int32 = "i32"
+primitive Int64 = "i64"
+primitive UInt8 = "u8"
+primitive UInt16 = "u16"
+primitive UInt32 = "u32"
+primitive UInt64 = "u64"
+primitive Float16 = "f32"
+primitive Float32 = "f32"
+primitive Float64 = "f64"
+primitive CodepointUnicode = "char"
+primitive StringUTF8 = "String"
+primitive (List t) = printf "Vec<%s>" $ type_ t
 
-composite :: Identifier -> String
-foreignFunction :: Identifier -> String
-function :: Identifier -> String
-member :: Identifier -> String
-variable :: Identifier -> String
-composite = pascalCase
+namedTypeIdent :: Identifier -> String
+foreignFunctionIdent :: Identifier -> String
+functionIdent :: Identifier -> String
+memberIdent :: Identifier -> String
+variableIdent :: Identifier -> String
 
-foreignFunction = snakeCase
-
-function = snakeCase
-
-member = snakeCase
-
-variable = snakeCase
+namedTypeIdent = pascalCase
+foreignFunctionIdent = snakeCase
+functionIdent = snakeCase
+memberIdent = snakeCase
+variableIdent = snakeCase
 
 type_ :: Type -> String
-type_ (Primitive p) = primitive p
-type_ (Composite c) = composite c
+type_ (Named c) = namedTypeIdent c
+type_ (Unnamed (Primitive p)) = primitive p
 
 foreignFunctionsDefsHeader :: [String]
 foreignFunctionsDefsHeader = ["mod sys {", "    extern \"C\" {"]
 
 foreignFunctionDef :: FunDef -> [String]
 foreignFunctionDef (FunDef name _ _) =
-  [ printf "pub fn %s(" $ foreignFunction name
+  [ printf "pub fn %s(" $ foreignFunctionIdent name
   , "    input: *const u8,"
   , "    input_len: usize,"
   , "    output: *mut *mut u8,"
@@ -103,11 +114,11 @@ foreignFunctionDefs funDefs = foreignFunctionsDefsHeader ++ indent 2 (funDefs >>
 
 functionDef :: FunDef -> [String]
 functionDef (FunDef name [source] target) =
-  [ printf "pub fn %s(x: %s) -> %s {" (function name) (type_ source) (type_ target)
+  [ printf "pub fn %s(x: %s) -> %s {" (functionIdent name) (type_ source) (type_ target)
   , "    fn wrapper(input: &[u8]) -> Buffer {"
   , "        let mut buffer = Buffer::new();"
   , "        unsafe {"
-  , printf "            sys::%s(input.as_ptr(), input.len(), &mut buffer.ptr, &mut buffer.len);" $ foreignFunction name
+  , printf "            sys::%s(input.as_ptr(), input.len(), &mut buffer.ptr, &mut buffer.len);" $ foreignFunctionIdent name
   , "        }"
   , "        buffer"
   , "    }"
@@ -118,12 +129,11 @@ functionDef (FunDef name [source] target) =
 typeHeader :: [String]
 typeHeader = ["#[derive(Deserialize, Serialize)]"]
 
-typeDefImpl :: TypeDef -> [String]
-typeDefImpl (TypeDef name (SumParts parts)) =
-  [printf "pub enum %s {" $ composite name] ++ fmap (\(n, t) -> printf "    %s(%s)," (composite n) (type_ t)) parts ++ ["}"]
-typeDefImpl (TypeDef name (ProdParts parts)) =
-  [printf "pub struct %s {" $ composite name] ++ fmap (\(n, t) -> printf "    %s: %s," (member n) (type_ t)) parts ++ ["}"]
-typeDefImpl (TypeDef name Unit) = [printf "struct %s;" $ composite name]
+typeDefImpl :: NamedTypeDef -> [String]
+typeDefImpl (NamedTypeDef name (SumParts parts)) =
+  [printf "pub enum %s {" $ namedTypeIdent name] ++ fmap (\(n, t) -> printf "    %s(%s)," (namedTypeIdent n) (type_ t)) parts ++ ["}"]
+typeDefImpl (NamedTypeDef name (ProdParts parts)) =
+  [printf "pub struct %s {" $ namedTypeIdent name] ++ fmap (\(n, t) -> printf "    %s: %s," (memberIdent n) (type_ t)) parts ++ ["}"]
 
-typeDef :: TypeDef -> [String]
+typeDef :: NamedTypeDef -> [String]
 typeDef = (typeHeader ++) . typeDefImpl

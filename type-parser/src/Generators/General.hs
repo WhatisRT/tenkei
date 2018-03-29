@@ -25,3 +25,6 @@ screamingSnakeCase = intercalate "_" . fmap upper
 
 pascalCase :: Identifier -> String
 pascalCase = join . fmap title
+
+indentStr :: String -> Int -> [String] -> [String]
+indentStr str i = fmap $ (++) (join (replicate i str))

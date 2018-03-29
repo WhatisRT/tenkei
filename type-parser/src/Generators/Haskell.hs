@@ -55,14 +55,14 @@ foreignFunctionId :: Identifier -> String
 foreignFunctionId = ("tenkei_" ++) . snakeCase
 
 generateHaskellLib :: DefFile -> String
-generateHaskellLib = intercalate "\n" . generateHaskellLib'
+generateHaskellLib = unlines . generateHaskellLib'
 
 generateHaskellLib' :: DefFile -> [String]
 generateHaskellLib' (DefFile libName funDefs typeDefs) =
   libHeader (pascalCase libName) ++ (funDefs >>= funDefToText) ++ (typeDefs >>= typeDefToText)
 
 generateHaskellInterface :: DefFile -> String
-generateHaskellInterface = intercalate "\n" . generateHaskellInterface'
+generateHaskellInterface = unlines . generateHaskellInterface'
 
 generateHaskellInterface' :: DefFile -> [String]
 generateHaskellInterface' (DefFile libName funDefs _) = interfaceHeader (pascalCase libName) ++ (funDefs >>= funDefToExport)
