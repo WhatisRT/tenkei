@@ -70,8 +70,8 @@ generateHaskellInterface' (DefFile libName funDefs _) = interfaceHeader (pascalC
 typeToHaskell :: Type -> String
 typeToHaskell (Primitive Int32) = "Int32"
 typeToHaskell (Primitive Int64) = "Int64"
-typeToHaskell (Primitive Char) = "Char"
-typeToHaskell (Primitive (Array t)) = printf "[%s]" $ typeToHaskell t
+typeToHaskell (Primitive CodepointUnicode) = "Char"
+typeToHaskell (Primitive (List t)) = printf "[%s]" $ typeToHaskell t
 typeToHaskell (Composite ident) = pascalCase ident
 
 funDefToExport :: FunDef -> [String]

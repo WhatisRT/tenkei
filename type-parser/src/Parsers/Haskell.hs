@@ -62,8 +62,8 @@ moduleDef = do
 
 primitiveType :: Parser PrimitiveType
 primitiveType =
-  (string "Int32" >> return Int32) <|> (string "Int64" >> return Int64) <|> (string "Char" >> return Char) <|>
-  (Array <$> brackets typeParser)
+  (string "Int32" >> return Int32) <|> (string "Int64" >> return Int64) <|> (string "Char" >> return CodepointUnicode) <|>
+  (List <$> brackets typeParser)
 
 typeParser :: Parser Type
 typeParser = (Primitive <$> try primitiveType) <|> fmap Composite pascalCaseIdentifier
