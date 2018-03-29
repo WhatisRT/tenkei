@@ -5,8 +5,9 @@
 
 module Types
   ( Identifier
-  , TypeDef(..)
-  , TypeParts(..)
+  , NamedTypeDef(..)
+  , NamedType(..)
+  , UnnamedType(..)
   , Type(..)
   , PrimitiveType(..)
   , FunDef(..)
@@ -26,11 +27,12 @@ type Identifier = [String]
 data NamedTypeDef = NamedTypeDef
   { typeName :: Identifier
   , parts :: NamedType
-  } deriving (Eq, Show)
+  } deriving (Eq, Generic, Show)
 
 data Type
   = Named Identifier
   | Unnamed UnnamedType
+  deriving (Eq, Generic, Show)
 
 data NamedType
   = SumParts [(Identifier, Type)]
@@ -41,6 +43,7 @@ data NamedType
 data UnnamedType
   = Any Identifier
   | PrimitiveType
+  deriving (Eq, Generic, Show)
 
 type Variable = (Identifier, Type)
 
@@ -73,7 +76,7 @@ data FunDef = FunDef
 data DefFile = DefFile
   { libName :: Identifier
   , funDefs :: [FunDef]
-  , typeDefs :: [TypeDef]
+  , typeDefs :: [NamedTypeDef]
   } deriving (Eq, Generic, Show)
 
 decodeType :: String -> Maybe DefFile
@@ -82,27 +85,27 @@ decodeType = decode . pack
 generateDefFile :: DefFile -> String
 generateDefFile = unpack . encodePretty
 
-instance ToJSON TypeDef where
+instance ToJSON NamedTypeDef where
   toJSON x = object ["name" .= typeName x, partsType .= parts x]
     where
       partsType =
         case parts x of
           SumParts _ -> "sumParts"
           ProdParts _ -> "prodParts"
-          Unit -> "prodParts"
+          Opaque -> "opaque"
 
-instance ToJSON TypeParts where
+instance ToJSON NamedType where
   toJSON (SumParts x) = toJSON x
   toJSON (ProdParts x) = toJSON x
-  toJSON Unit = toJSON ([] :: [String])
+  toJSON Opaque = toJSON ([] :: [String])
 
-instance FromJSON TypeDef where
-  parseJSON = withObject "TypeDef" $ \v -> toTypeDef <$> v .: "name" <*> v .:? "sumParts" <*> v .:? "prodParts"
+instance FromJSON NamedTypeDef where
+  parseJSON = withObject "TypeDef" $ \v -> toTypeDef <$> v .: "name" <*> v .:? "sumParts" <*> v .:? "prodParts" <*> v .:? "opaque"
 
-toTypeDef :: Identifier -> Maybe [(Identifier, Type)] -> Maybe [(Identifier, Type)] -> TypeDef
-toTypeDef name (Just x) _ = TypeDef name $ SumParts x
-toTypeDef name _ (Just x) = TypeDef name $ ProdParts x
-toTypeDef name _ _ = TypeDef name Unit
+toTypeDef :: Identifier -> Maybe [(Identifier, Type)] -> Maybe [(Identifier, Type)] -> Maybe [(Identifier, Type)] -> NamedTypeDef
+toTypeDef name (Just x) _ _ = NamedTypeDef name $ SumParts x
+toTypeDef name _ (Just x) _ = NamedTypeDef name $ ProdParts x
+toTypeDef name _ _ (Just x) = NamedTypeDef name Opaque
 
 instance FromJSON FunDef
 
@@ -111,6 +114,10 @@ instance ToJSON FunDef
 instance FromJSON DefFile
 
 instance ToJSON DefFile
+
+instance FromJSON UnnamedType
+
+instance ToJSON UnnamedType
 
 instance FromJSON Type
 
