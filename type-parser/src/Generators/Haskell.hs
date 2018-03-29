@@ -68,11 +68,11 @@ generateHaskellInterface' :: DefFile -> [String]
 generateHaskellInterface' (DefFile libName funDefs _) = interfaceHeader (pascalCase libName) ++ (funDefs >>= funDefToExport)
 
 typeToHaskell :: Type -> String
-typeToHaskell (Primitive Int32) = "Int32"
-typeToHaskell (Primitive Int64) = "Int64"
-typeToHaskell (Primitive CodepointUnicode) = "Char"
-typeToHaskell (Primitive (List t)) = printf "[%s]" $ typeToHaskell t
-typeToHaskell (Composite ident) = pascalCase ident
+typeToHaskell (Unnamed (Primitive Int32)) = "Int32"
+typeToHaskell (Unnamed (Primitive Int64)) = "Int64"
+typeToHaskell (Unnamed (Primitive CodepointUnicode)) = "Char"
+typeToHaskell (Unnamed (Primitive (List t))) = printf "[%s]" $ typeToHaskell t
+typeToHaskell (Named ident) = pascalCase ident
 
 funDefToExport :: FunDef -> [String]
 funDefToExport (FunDef name sources _) =
@@ -103,11 +103,10 @@ funDefToText (FunDef name sources target) =
           1 -> printf "%s = call foreign_%s tenkei_free" (functionId name) (foreignFunctionId name)
           _ -> printf "%s %s = deserialize $ callCBOR foreign_%s tenkei_free $ CBOR_Array [%s]" (functionId name) (unwords argList) (foreignFunctionId name) $ intercalate ", " $ fmap ("serialize " ++) argList
 
-typeDefToText :: TypeDef -> [String]
-typeDefToText (TypeDef name (SumParts parts)) =
+typeDefToText :: NamedTypeDef -> [String]
+typeDefToText (NamedTypeDef name (SumParts parts)) =
   [printf "data %s = %s" (typeId name) $ intercalate " | " $ fmap (\(n, t) -> typeId n ++ " " ++ typeToHaskell t) parts]
-typeDefToText (TypeDef name (ProdParts parts)) =
+typeDefToText (NamedTypeDef name (ProdParts parts)) =
   [ printf "data %s = %s { %s }" (typeId name) (typeId name) $
     intercalate ", " $ fmap (\(n, t) -> functionId n ++ " :: " ++ typeToHaskell t) parts
   ]
-typeDefToText (TypeDef name Unit) = [printf "data %s = Unit" (typeId name)]
