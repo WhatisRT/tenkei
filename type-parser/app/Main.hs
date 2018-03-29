@@ -10,6 +10,7 @@ import Parsers.Rust
 
 import Data.Bifunctor
 import Data.List
+import Data.Maybe
 
 import System.Environment
 import System.IO.Error
@@ -46,6 +47,9 @@ fillRight s i
   | length s < i = fillRight (s ++ " ") i
   | otherwise = s
 
+(!!?) :: [a] -> Int -> Maybe a
+(!!?) l n = listToMaybe $ drop n l
+
 selectLanguage :: String -> ErrorIO (String -> Maybe DefFile, DefFile -> String, DefFile -> String)
 selectLanguage lang
   | (Just translators) <- lookup lang languages = return translators
@@ -71,19 +75,13 @@ getCmd = do
 getLang :: ErrorIO String
 getLang = do
   args <- liftIO getArgs
-  flip fromJustError "No language specified" $
-    case args of
-      (_:x:_) -> Just x
-      _ -> Nothing
+  fromJustError (args !!? 1) "No language specified"
 
 getSource :: ErrorIO String
 getSource = do
   args <- liftIO getArgs
-  join $
-    flip fromJustError "No source file specified" $
-    case args of
-      (_:_:x:_) -> Just $ customError (readFile x) (\e -> "Error while reading " ++ x ++ ":\n" ++ show e)
-      _ -> Nothing
+  filename <- fromJustError (args !!? 2) "No source file specified"
+  customError (readFile filename) (\e -> "Error while reading " ++ filename ++ ":\n" ++ show e)
 
 writeTarget :: String -> ErrorIO ()
 writeTarget contents = do
