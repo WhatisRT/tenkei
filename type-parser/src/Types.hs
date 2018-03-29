@@ -40,10 +40,22 @@ data Type
   deriving (Eq, Generic, Show)
 
 data PrimitiveType
-  = Int32
+  = XUnit
+  | Bool
+  | Int8
+  | Int16
+  | Int32
   | Int64
-  | Char
-  | Array Type
+  | UInt8
+  | UInt16
+  | UInt32
+  | UInt64
+  | Float16
+  | Float32
+  | Float64
+  | CodepointUnicode
+  | StringUTF8
+  | List Type
   deriving (Eq, Generic, Show)
 
 data FunDef = FunDef
