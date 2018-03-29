@@ -42,7 +42,7 @@ data NamedType
 
 data UnnamedType
   = Any Identifier
-  | PrimitiveType
+  | Primitive PrimitiveType
   deriving (Eq, Generic, Show)
 
 type Variable = (Identifier, Type)
@@ -105,7 +105,8 @@ instance FromJSON NamedTypeDef where
 toTypeDef :: Identifier -> Maybe [(Identifier, Type)] -> Maybe [(Identifier, Type)] -> Maybe [(Identifier, Type)] -> NamedTypeDef
 toTypeDef name (Just x) _ _ = NamedTypeDef name $ SumParts x
 toTypeDef name _ (Just x) _ = NamedTypeDef name $ ProdParts x
-toTypeDef name _ _ (Just x) = NamedTypeDef name Opaque
+toTypeDef name _ _ (Just _) = NamedTypeDef name Opaque
+toTypeDef _ _ _ _ = error "Unable to parse JSON"
 
 instance FromJSON FunDef
 

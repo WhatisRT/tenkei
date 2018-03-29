@@ -66,7 +66,7 @@ primitiveType =
   (List <$> brackets typeParser)
 
 typeParser :: Parser Type
-typeParser = (Primitive <$> try primitiveType) <|> fmap Composite pascalCaseIdentifier
+typeParser = ((Unnamed . Primitive) <$> try primitiveType) <|> fmap Named pascalCaseIdentifier
 
 function :: Parser FunDef
 function = do
@@ -75,7 +75,7 @@ function = do
   types <- sepBy1 (lexeme typeParser) $ symbol "->"
   return $ FunDef name (init types) $ last types
 
-typePartsSum :: Parser TypeParts
+typePartsSum :: Parser NamedType
 typePartsSum = fmap SumParts $ sepBy1 constructorParser $ lexeme $ string "|"
   where
     constructorParser = do
@@ -83,7 +83,7 @@ typePartsSum = fmap SumParts $ sepBy1 constructorParser $ lexeme $ string "|"
       typeName <- lexeme typeParser
       return (identifier, typeName)
 
-typePartsProduct :: Parser TypeParts
+typePartsProduct :: Parser NamedType
 typePartsProduct = do
   _ <- lexeme pascalCaseIdentifier
   braces (fmap ProdParts $ sepBy1 constructorParser $ lexeme $ string ",")
@@ -94,13 +94,13 @@ typePartsProduct = do
       typeName <- lexeme typeParser
       return (identifier, typeName)
 
-typeDef :: Parser TypeDef
+typeDef :: Parser NamedTypeDef
 typeDef = do
   _ <- lexeme (symbol "data")
   name <- lexeme pascalCaseIdentifier
   _ <- lexeme (symbol "=")
   parts <- try typePartsProduct <|> typePartsSum
-  return $ TypeDef name parts
+  return $ NamedTypeDef name parts
 
 lineEnd :: Parser ()
 lineEnd = eof <|> void eol
