@@ -8,6 +8,7 @@ module Types
   , NamedTypeDef(..)
   , NamedType(..)
   , UnnamedType(..)
+  , Variable
   , Type(..)
   , PrimitiveType(..)
   , FunDef(..)
@@ -69,7 +70,7 @@ data PrimitiveType
 
 data FunDef = FunDef
   { funName :: Identifier
-  , sources :: [Type]
+  , sources :: [Variable]
   , target :: Type
   } deriving (Eq, Generic, Show)
 

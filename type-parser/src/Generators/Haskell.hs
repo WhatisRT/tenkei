@@ -93,7 +93,7 @@ funDefToText (FunDef name sources target) =
       "foreign import ccall \"%s\" foreign_%s :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()"
       (foreignFunctionId name)
       (foreignFunctionId name)
-  , printf "%s :: %s -> %s" (functionId name) (intercalate " -> " $ fmap typeToHaskell sources) (typeToHaskell target)
+  , printf "%s :: %s -> %s" (functionId name) (intercalate " -> " $ fmap (typeToHaskell . snd) sources) (typeToHaskell target)
   , funImpl
   , ""
   ]

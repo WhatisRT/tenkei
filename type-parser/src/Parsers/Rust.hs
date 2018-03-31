@@ -71,7 +71,7 @@ function :: Parser FunDef
 function = do
   _ <- symbol "fn"
   name <- lexeme snakeCaseIdentifier
-  (_, source) <- parens qualifiedTypeParser1
+  source <- parens qualifiedTypeParser1
   _ <- symbol "->"
   target <- typeParser
   return $ FunDef name [source] target
