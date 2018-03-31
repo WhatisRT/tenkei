@@ -8,6 +8,9 @@ module FFIWrappers
   , offer
   , offerCBOR
   , tenkeiFree
+  , toPointer
+  , toPointerF
+  , fromPointer
   ) where
 
 import Foreign
@@ -68,3 +71,16 @@ offerCBOR f args argn res resn = do
 
 offer :: (Tenkei a, Tenkei b) => (a -> b) -> Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
 offer f = offerCBOR $ serialize . f . deserialize
+
+toPointer :: a -> IO TenkeiPtr
+toPointer = fmap castStablePtrToPtr . newStablePtr
+
+fromPointer :: TenkeiPtr -> IO a
+fromPointer x = do
+  let stable = castPtrToStablePtr x
+  contents <- deRefStablePtr stable
+  freeStablePtr stable
+  return contents
+
+toPointerF :: (Traversable f) => f a -> IO (f TenkeiPtr)
+toPointerF = traverse toPointer

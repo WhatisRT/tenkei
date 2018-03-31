@@ -12,27 +12,33 @@
             ],
             "sources": [
                 {
-                    "tag": "Primitive",
+                    "tag": "Unnamed",
                     "contents": {
-                        "tag": "Array",
+                        "tag": "Primitive",
                         "contents": {
-                            "tag": "Composite",
-                            "contents": [
-                                "int"
-                            ]
+                            "tag": "List",
+                            "contents": {
+                                "tag": "Named",
+                                "contents": [
+                                    "int"
+                                ]
+                            }
                         }
                     }
                 }
             ],
             "target": {
-                "tag": "Primitive",
+                "tag": "Unnamed",
                 "contents": {
-                    "tag": "Array",
+                    "tag": "Primitive",
                     "contents": {
-                        "tag": "Composite",
-                        "contents": [
-                            "int"
-                        ]
+                        "tag": "List",
+                        "contents": {
+                            "tag": "Named",
+                            "contents": [
+                                "int"
+                            ]
+                        }
                     }
                 }
             }
@@ -45,26 +51,38 @@
             ],
             "sources": [
                 {
-                    "tag": "Primitive",
+                    "tag": "Unnamed",
                     "contents": {
-                        "tag": "Array",
+                        "tag": "Primitive",
                         "contents": {
-                            "tag": "Primitive",
+                            "tag": "List",
                             "contents": {
-                                "tag": "Char"
+                                "tag": "Unnamed",
+                                "contents": {
+                                    "tag": "Primitive",
+                                    "contents": {
+                                        "tag": "CodepointUnicode"
+                                    }
+                                }
                             }
                         }
                     }
                 }
             ],
             "target": {
-                "tag": "Primitive",
+                "tag": "Unnamed",
                 "contents": {
-                    "tag": "Array",
+                    "tag": "Primitive",
                     "contents": {
-                        "tag": "Primitive",
+                        "tag": "List",
                         "contents": {
-                            "tag": "Char"
+                            "tag": "Unnamed",
+                            "contents": {
+                                "tag": "Primitive",
+                                "contents": {
+                                    "tag": "CodepointUnicode"
+                                }
+                            }
                         }
                     }
                 }
@@ -76,23 +94,83 @@
             ],
             "sources": [
                 {
-                    "tag": "Composite",
+                    "tag": "Named",
                     "contents": [
                         "int"
                     ]
                 },
                 {
-                    "tag": "Composite",
+                    "tag": "Named",
                     "contents": [
                         "int"
                     ]
                 }
             ],
             "target": {
-                "tag": "Composite",
+                "tag": "Named",
                 "contents": [
                     "int"
                 ]
+            }
+        },
+        {
+            "funName": [
+                "identity"
+            ],
+            "sources": [
+                {
+                    "tag": "Unnamed",
+                    "contents": {
+                        "tag": "Any",
+                        "contents": [
+                            "a"
+                        ]
+                    }
+                }
+            ],
+            "target": {
+                "tag": "Unnamed",
+                "contents": {
+                    "tag": "Any",
+                    "contents": [
+                        "a"
+                    ]
+                }
+            }
+        },
+        {
+            "funName": [
+                "choose",
+                "left"
+            ],
+            "sources": [
+                {
+                    "tag": "Unnamed",
+                    "contents": {
+                        "tag": "Any",
+                        "contents": [
+                            "a"
+                        ]
+                    }
+                },
+                {
+                    "tag": "Unnamed",
+                    "contents": {
+                        "tag": "Any",
+                        "contents": [
+                            "b"
+                        ]
+                    }
+                }
+            ],
+            "target": {
+                "tag": "Unnamed",
+                "contents": {
+                    "tag": "Any",
+                    "contents": [
+                        "a"
+                    ]
+                }
             }
         }
     ]

@@ -3,12 +3,15 @@
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE PolyKinds #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 module Tenkei where
 
 import Data.CBOR
 import Data.Maybe
 import Generics.SOP
+
+import Foreign
 
 class Tenkei a where
   serialize :: a -> CBOR
@@ -19,6 +22,13 @@ class Tenkei a where
   default deserialize :: (Generic a, All2 Tenkei (Code a)) =>
     CBOR -> a
   deserialize = to . deserializeS
+
+type TenkeiPtr = Ptr ()
+
+instance Tenkei TenkeiPtr where
+  serialize = CBOR_UInt . fromIntegral . (\(WordPtr x) -> x) . ptrToWordPtr
+  deserialize (CBOR_UInt i) = wordPtrToPtr $ WordPtr $ fromIntegral i
+  deserialize _ = error "Error while interpreting CBOR: not a memory address"
 
 instance Tenkei Int where
   serialize i

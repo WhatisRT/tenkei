@@ -1,9 +1,16 @@
 module Main where
 
 import TestLibrary
+import Data.List
 
 main :: IO ()
-main = do
-  putStrLn $ show $ modifyArray [1..10]
-  putStrLn $ invertStringCase "This IS a teST string"
-  putStrLn $ show $ fmap (exponentiate 2) [1..20]
+main =
+  putStr $
+  intercalate
+    "\n"
+    [ show $ modifyArray [1 .. 10]
+    , invertStringCase "This IS a teST string"
+    , show $ fmap (exponentiate 2) [1 .. 20]
+    , show $ identity "nice!"
+    , show $ chooseLeft "Left" "Right"
+    ]

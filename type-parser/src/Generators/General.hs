@@ -28,3 +28,10 @@ pascalCase = join . fmap title
 
 indentStr :: String -> Int -> [String] -> [String]
 indentStr str i = fmap $ (++) (join (replicate i str))
+
+isTypeVar :: Type -> Bool
+isTypeVar (Unnamed (Any _)) = True
+isTypeVar _ = False
+
+hasTypeVars :: FunDef -> Bool
+hasTypeVars (FunDef _ sources target) = any isTypeVar (target : sources)
