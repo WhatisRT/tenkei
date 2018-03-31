@@ -68,9 +68,7 @@ main = do
 getCmd :: ErrorIO String
 getCmd = do
   args <- liftIO getArgs
-  case args of
-    (x:_) -> return x
-    _ -> ExceptT $ return $ Left "No command given"
+  fromJustError (args !!? 0) "No command given"
 
 getLang :: ErrorIO String
 getLang = do
@@ -86,9 +84,7 @@ getSource = do
 writeTarget :: String -> ErrorIO ()
 writeTarget contents = do
   args <- liftIO getArgs
-  case args of
-    (_:_:_:x:_) -> customError (writeFile x contents) (\e -> "Error while writing file " ++ x ++ ":\n" ++ show e)
-    _ -> liftIO $ putStr contents
+  maybe (liftIO $ putStr contents) (\x -> customError (writeFile x contents) (\e -> "Error while writing file " ++ x ++ ":\n" ++ show e)) (args !!? 3)
 
 generateLib :: ErrorIO ()
 generateLib = do
