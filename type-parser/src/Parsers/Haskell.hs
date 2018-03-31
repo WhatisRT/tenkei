@@ -62,11 +62,21 @@ moduleDef = do
 
 primitiveType :: Parser PrimitiveType
 primitiveType =
-  (string "Int32" >> return Int32) <|> (string "Int64" >> return Int64) <|> (string "Char" >> return CodepointUnicode) <|>
+  (symbol "()" >> return Unit) <|>
+  (symbol "Bool" >> return Bool) <|>
+  (symbol "Int8" >> return Int8) <|>
+  (symbol "Int16" >> return Int16) <|>
+  (string "Int32" >> return Int32) <|>
+  (string "Int64" >> return Int64) <|>
+  (symbol "UInt8" >> return UInt8) <|>
+  (symbol "UInt16" >> return UInt16) <|>
+  (string "UInt32" >> return UInt32) <|>
+  (string "UInt64" >> return UInt64) <|>
+  (string "Char" >> return CodepointUnicode) <|>
   (List <$> brackets typeParser)
 
 typeParser :: Parser Type
-typeParser = ((Unnamed . Primitive) <$> try primitiveType) <|> fmap Named pascalCaseIdentifier
+typeParser = ((Unnamed . Primitive) <$> try primitiveType) <|> ((Unnamed . Any) <$> snakeCaseIdentifier) <|> fmap Named pascalCaseIdentifier
 
 function :: Parser FunDef
 function = do
