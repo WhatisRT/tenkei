@@ -11,21 +11,26 @@
                 "array"
             ],
             "sources": [
-                {
-                    "tag": "Unnamed",
-                    "contents": {
-                        "tag": "Primitive",
+                [
+                    [
+                        "param"
+                    ],
+                    {
+                        "tag": "Unnamed",
                         "contents": {
-                            "tag": "List",
+                            "tag": "Primitive",
                             "contents": {
-                                "tag": "Named",
-                                "contents": [
-                                    "int"
-                                ]
+                                "tag": "List",
+                                "contents": {
+                                    "tag": "Named",
+                                    "contents": [
+                                        "int"
+                                    ]
+                                }
                             }
                         }
                     }
-                }
+                ]
             ],
             "target": {
                 "tag": "Unnamed",
@@ -50,24 +55,29 @@
                 "case"
             ],
             "sources": [
-                {
-                    "tag": "Unnamed",
-                    "contents": {
-                        "tag": "Primitive",
+                [
+                    [
+                        "param"
+                    ],
+                    {
+                        "tag": "Unnamed",
                         "contents": {
-                            "tag": "List",
+                            "tag": "Primitive",
                             "contents": {
-                                "tag": "Unnamed",
+                                "tag": "List",
                                 "contents": {
-                                    "tag": "Primitive",
+                                    "tag": "Unnamed",
                                     "contents": {
-                                        "tag": "CodepointUnicode"
+                                        "tag": "Primitive",
+                                        "contents": {
+                                            "tag": "CodepointUnicode"
+                                        }
                                     }
                                 }
                             }
                         }
                     }
-                }
+                ]
             ],
             "target": {
                 "tag": "Unnamed",
@@ -93,18 +103,28 @@
                 "exponentiate"
             ],
             "sources": [
-                {
-                    "tag": "Named",
-                    "contents": [
-                        "int"
-                    ]
-                },
-                {
-                    "tag": "Named",
-                    "contents": [
-                        "int"
-                    ]
-                }
+                [
+                    [
+                        "param0"
+                    ],
+                    {
+                        "tag": "Named",
+                        "contents": [
+                            "int"
+                        ]
+                    }
+                ],
+                [
+                    [
+                        "param1"
+                    ],
+                    {
+                        "tag": "Named",
+                        "contents": [
+                            "int"
+                        ]
+                    }
+                ]
             ],
             "target": {
                 "tag": "Named",
@@ -118,15 +138,20 @@
                 "identity"
             ],
             "sources": [
-                {
-                    "tag": "Unnamed",
-                    "contents": {
-                        "tag": "Any",
-                        "contents": [
-                            "a"
-                        ]
+                [
+                    [
+                        "param"
+                    ],
+                    {
+                        "tag": "Unnamed",
+                        "contents": {
+                            "tag": "Any",
+                            "contents": [
+                                "a"
+                            ]
+                        }
                     }
-                }
+                ]
             ],
             "target": {
                 "tag": "Unnamed",
@@ -144,24 +169,34 @@
                 "left"
             ],
             "sources": [
-                {
-                    "tag": "Unnamed",
-                    "contents": {
-                        "tag": "Any",
-                        "contents": [
-                            "a"
-                        ]
+                [
+                    [
+                        "param0"
+                    ],
+                    {
+                        "tag": "Unnamed",
+                        "contents": {
+                            "tag": "Any",
+                            "contents": [
+                                "a"
+                            ]
+                        }
                     }
-                },
-                {
-                    "tag": "Unnamed",
-                    "contents": {
-                        "tag": "Any",
-                        "contents": [
-                            "b"
-                        ]
+                ],
+                [
+                    [
+                        "param1"
+                    ],
+                    {
+                        "tag": "Unnamed",
+                        "contents": {
+                            "tag": "Any",
+                            "contents": [
+                                "b"
+                            ]
+                        }
                     }
-                }
+                ]
             ],
             "target": {
                 "tag": "Unnamed",

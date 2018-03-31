@@ -34,4 +34,4 @@ isTypeVar (Unnamed (Any _)) = True
 isTypeVar _ = False
 
 hasTypeVars :: FunDef -> Bool
-hasTypeVars (FunDef _ sources target) = any isTypeVar (target : sources)
+hasTypeVars (FunDef _ sources target) = any isTypeVar (target : fmap snd sources)

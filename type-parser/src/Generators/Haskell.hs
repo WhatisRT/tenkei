@@ -96,7 +96,7 @@ typeToHaskell' (Unnamed (Any _)) = "TenkeiPtr"
 typeToHaskell' x = typeToHaskell x
 
 generateFunSignature :: FunDef -> (Type -> String) -> String
-generateFunSignature (FunDef _ sources target) converter = intercalate " -> " $ fmap converter (sources ++ [target])
+generateFunSignature (FunDef _ sources target) converter = intercalate " -> " $ fmap converter (fmap snd sources ++ [target])
 
 mif :: Monoid m => Bool -> m -> m
 mif True = id
@@ -151,7 +151,7 @@ funDefToImport f@(FunDef name sources target) =
         then intercalate "\n  " $
              join
                [ return "unsafePerformIO $ do"
-               , zipWith convArg sources argList
+               , zipWith convArg (fmap snd sources) argList
                , return $ mif (isTypeVar target) "fromPointer $ " ++ funImpl' (fmap (++ "'") args)
                ]
         else funImpl' args

@@ -3,6 +3,7 @@
 
 module Generators.Rust where
 
+import Data.List
 import Generators.General
 import Text.Printf
 import Types
@@ -20,6 +21,16 @@ header =
   , "use std::ops;"
   , "use std::ptr;"
   , "use std::slice;"
+  , ""
+  , "#[derive(Deserialize, Serialize)]"
+  , "struct Any(usize);"
+  , ""
+  , "struct Function(fn("
+  , "    input: *const u8,"
+  , "    input_len: usize,"
+  , "    output: *mut *mut u8,"
+  , "    output_len: *mut usize,"
+  , "));"
   , ""
   , "struct Buffer {"
   , "    ptr: *mut u8,"
@@ -75,23 +86,26 @@ primitive Float32 = "f32"
 primitive Float64 = "f64"
 primitive CodepointUnicode = "char"
 primitive StringUTF8 = "String"
-primitive (List t) = printf "Vec<%s>" $ type_ t
+primitive (List t) = printf "Vec<%s>" $ typeIdent t
+primitive (Function _ _) = "Function"
 
 namedTypeIdent :: Identifier -> String
 foreignFunctionIdent :: Identifier -> String
 functionIdent :: Identifier -> String
-memberIdent :: Identifier -> String
 variableIdent :: Identifier -> String
 
 namedTypeIdent = pascalCase
 foreignFunctionIdent = snakeCase
 functionIdent = snakeCase
-memberIdent = snakeCase
 variableIdent = snakeCase
 
-type_ :: Type -> String
-type_ (Named c) = namedTypeIdent c
-type_ (Unnamed (Primitive p)) = primitive p
+typeIdent :: Type -> String
+typeIdent (Named c) = namedTypeIdent c
+typeIdent (Unnamed (Primitive p)) = primitive p
+typeIdent (Unnamed (Any _)) = "Any"
+
+variable :: Variable -> String
+variable (ident, type_) = printf "%s: %s" (variableIdent ident) (typeIdent type_)
 
 foreignFunctionsDefsHeader :: [String]
 foreignFunctionsDefsHeader = ["mod sys {", "    extern \"C\" {"]
@@ -112,9 +126,13 @@ foreignFunctionsDefsFooter = ["        pub fn tenkei_free(buffer: *mut u8, buffe
 foreignFunctionDefs :: [FunDef] -> [String]
 foreignFunctionDefs funDefs = foreignFunctionsDefsHeader ++ indent 2 (funDefs >>= foreignFunctionDef) ++ foreignFunctionsDefsFooter
 
+argumentSerialization :: [Variable] -> String
+argumentSerialization [(var, _)] = variableIdent var
+argumentSerialization vars = printf "(%s)" $ intercalate ", " (fmap (variableIdent . fst) vars)
+
 functionDef :: FunDef -> [String]
-functionDef (FunDef name [source] target) =
-  [ printf "pub fn %s(x: %s) -> %s {" (functionIdent name) (type_ source) (type_ target)
+functionDef (FunDef name sources target) =
+  [ printf "pub fn %s(%s) -> %s {" (functionIdent name) (intercalate ", " (fmap variable sources)) (typeIdent target)
   , "    fn wrapper(input: &[u8]) -> Buffer {"
   , "        let mut buffer = Buffer::new();"
   , "        unsafe {"
@@ -122,18 +140,19 @@ functionDef (FunDef name [source] target) =
   , "        }"
   , "        buffer"
   , "    }"
-  , "    cbor::from_slice(&wrapper(&cbor::to_vec(&x).unwrap())).unwrap()"
+  , printf "    cbor::from_slice(&wrapper(&cbor::to_vec(&%s).unwrap())).unwrap()" $ argumentSerialization sources
   , "}"
-  ]
+ ]
 
 typeHeader :: [String]
 typeHeader = ["#[derive(Deserialize, Serialize)]"]
 
 typeDefImpl :: NamedTypeDef -> [String]
 typeDefImpl (NamedTypeDef name (SumParts parts)) =
-  [printf "pub enum %s {" $ namedTypeIdent name] ++ fmap (\(n, t) -> printf "    %s(%s)," (namedTypeIdent n) (type_ t)) parts ++ ["}"]
+  [printf "pub enum %s {" $ namedTypeIdent name] ++ fmap (\(n, t) -> printf "    %s(%s)," (namedTypeIdent n) (typeIdent t)) parts ++ ["}"]
 typeDefImpl (NamedTypeDef name (ProdParts parts)) =
-  [printf "pub struct %s {" $ namedTypeIdent name] ++ fmap (\(n, t) -> printf "    %s: %s," (memberIdent n) (type_ t)) parts ++ ["}"]
+  [printf "pub struct %s {" $ namedTypeIdent name] ++ fmap (\(n, t) -> printf "    %s," (variable $ (n, t))) parts ++ ["}"]
+typeDefImpl (NamedTypeDef name Opaque) = [printf "pub struct %s(usize);" $ namedTypeIdent name]
 
 typeDef :: NamedTypeDef -> [String]
 typeDef = (typeHeader ++) . typeDefImpl

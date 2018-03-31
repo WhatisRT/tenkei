@@ -11,6 +11,7 @@ import Data.Either
 import Data.Either.Combinators
 import Data.List
 import Data.Maybe
+import Text.Printf
 
 import Parsers.GeneralParsers
 
@@ -78,12 +79,16 @@ primitiveType =
 typeParser :: Parser Type
 typeParser = ((Unnamed . Primitive) <$> try primitiveType) <|> ((Unnamed . Any) <$> snakeCaseIdentifier) <|> fmap Named pascalCaseIdentifier
 
+augmentParameters :: [Type] -> [Variable]
+augmentParameters [type_] = [(["param"], type_)]
+augmentParameters types = fmap (\(i, type_) -> ([printf "param%d" i], type_)) $ zip ([0..] :: [Integer]) types
+
 function :: Parser FunDef
 function = do
   name <- lexeme camelCaseIdentifier
   _ <- symbol "::"
   types <- sepBy1 (lexeme typeParser) $ symbol "->"
-  return $ FunDef name (init types) $ last types
+  return $ FunDef name (augmentParameters $ init types) $ last types
 
 typePartsSum :: Parser NamedType
 typePartsSum = fmap SumParts $ sepBy1 constructorParser $ lexeme $ string "|"
