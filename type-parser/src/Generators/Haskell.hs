@@ -87,12 +87,13 @@ typeToHaskell (Unnamed (Primitive Float64)) = "Float64"
 typeToHaskell (Unnamed (Primitive CodepointUnicode)) = "Char"
 typeToHaskell (Unnamed (Primitive StringUTF8)) = "String"
 typeToHaskell (Unnamed (Primitive (Function sources target))) = intercalate " -> " $ typeToHaskell <$> fmap snd sources ++ [target]
-typeToHaskell (Unnamed (Primitive (List t))) = printf "[%s]" $ typeToHaskell t
+typeToHaskell (Unnamed (Primitive (List t))) = mconcat ["[", typeToHaskell t, "]"]
 typeToHaskell (Unnamed (Any ident)) = snakeCase ident
 typeToHaskell (Named ident) = pascalCase ident
 
 typeToHaskell' :: Type -> String
 typeToHaskell' (Unnamed (Any _)) = "TenkeiPtr"
+typeToHaskell' (Unnamed (Primitive (List t))) = mconcat ["[", typeToHaskell' t, "]"]
 typeToHaskell' x = typeToHaskell x
 
 generateFunSignature :: FunDef -> (Type -> String) -> String
@@ -112,6 +113,7 @@ funDefToExport f@(FunDef name sources _) = (mconcat . snd) <$> filter fst
   , (True, [foreignName, " :: ", externalSignature])
   , (True, [foreignName, " = ", funImpl])
   , (True, ["foreign export ccall ", foreignName, " :: ", externalSignature])
+  , (True, [""])
   ]
   where
     foreignName = foreignFunctionId name
@@ -152,11 +154,11 @@ funDefToImport f@(FunDef name sources target) =
              join
                [ return "unsafePerformIO $ do"
                , zipWith convArg (fmap snd sources) argList
-               , return $ mif (isTypeVar target) "fromPointer $ " ++ funImpl' (fmap (++ "'") args)
+               , return $ mif (hasTypeVar target) "fromPointer $ " ++ funImpl' (fmap (++ "'") args)
                ]
         else funImpl' args
     convArg arg argName =
-      if isTypeVar arg
+      if hasTypeVar arg
         then mconcat [argName, "' <- toPointer ", argName]
         else mconcat ["let ", argName, "' = ", argName]
     funImpl' args =

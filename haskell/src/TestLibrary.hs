@@ -1,7 +1,6 @@
-module TestLibrary (modifyArray, invertStringCase, exponentiate, identity, chooseLeft) where
+module TestLibrary (modifyArray, invertStringCase, exponentiate, identity, chooseLeft, reverseList) where
 
 import Data.Char
-import Tenkei
 
 modifyArray :: [Int] -> [Int]
 modifyArray = zipWith (*) [1..]
@@ -17,6 +16,10 @@ identity x = x
 
 chooseLeft :: a -> b -> a
 chooseLeft x _ = x
+
+reverseList :: [a] -> [a]
+reverseList [] = []
+reverseList (x : xs) = reverseList xs ++ [x]
 
 invertCase :: Char -> Char
 invertCase c | isLower c = toUpper c

@@ -207,6 +207,55 @@
                     ]
                 }
             }
+        },
+        {
+            "funName": [
+                "reverse",
+                "list"
+            ],
+            "sources": [
+                [
+                    [
+                        "param"
+                    ],
+                    {
+                        "tag": "Unnamed",
+                        "contents": {
+                            "tag": "Primitive",
+                            "contents": {
+                                "tag": "List",
+                                "contents": {
+                                    "tag": "Unnamed",
+                                    "contents": {
+                                        "tag": "Any",
+                                        "contents": [
+                                            "a"
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                ]
+            ],
+            "target": {
+                "tag": "Unnamed",
+                "contents": {
+                    "tag": "Primitive",
+                    "contents": {
+                        "tag": "List",
+                        "contents": {
+                            "tag": "Unnamed",
+                            "contents": {
+                                "tag": "Any",
+                                "contents": [
+                                    "a"
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
         }
     ]
 }

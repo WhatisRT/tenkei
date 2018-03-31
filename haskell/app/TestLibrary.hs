@@ -37,3 +37,9 @@ chooseLeft arg1 arg2 = unsafePerformIO $ do
   arg2' <- toPointer arg2
   fromPointer $ deserialize $ callCBOR foreign_tenkei_choose_left tenkei_free $ CBOR_Array [serialize arg1', serialize arg2']
 
+foreign import ccall "tenkei_reverse_list" foreign_tenkei_reverse_list :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
+reverseList :: [a] -> [a]
+reverseList arg1 = unsafePerformIO $ do
+  arg1' <- toPointer arg1
+  fromPointer $ call foreign_tenkei_reverse_list tenkei_free arg1'
+
