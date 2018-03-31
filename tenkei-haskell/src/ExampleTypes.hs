@@ -1,4 +1,7 @@
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE DeriveFoldable #-}
+{-# LANGUAGE DeriveTraversable #-}
 
 module ExampleTypes where
 
@@ -17,7 +20,7 @@ data Tree a
   = Leaf a
   | Node (Tree a)
          (Tree a)
-  deriving (Show, GHC.Generic)
+  deriving (Functor, Foldable, Traversable, Show, GHC.Generic)
 
 instance Generic Test
 
