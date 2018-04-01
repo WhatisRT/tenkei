@@ -22,6 +22,7 @@ libHeader libName =
   , "import Data.CBOR"
   , "import FFIWrappers"
   , "import System.IO.Unsafe"
+  , "import Pointers"
   , "import Tenkei"
   , ""
   , "foreign import ccall \"tenkei_free\" tenkei_free :: Ptr Word8 -> CSize -> IO ()"
@@ -39,6 +40,7 @@ interfaceHeader libName =
   , ""
   , "import Data.CBOR"
   , "import FFIWrappers"
+  , "import Pointers"
   , "import Tenkei"
   , "import " ++ libName
   , ""
@@ -86,14 +88,16 @@ typeToHaskell (Unnamed (Primitive Float32)) = "Float32"
 typeToHaskell (Unnamed (Primitive Float64)) = "Float64"
 typeToHaskell (Unnamed (Primitive CodepointUnicode)) = "Char"
 typeToHaskell (Unnamed (Primitive StringUTF8)) = "String"
-typeToHaskell (Unnamed (Primitive (Function sources target))) = intercalate " -> " $ typeToHaskell <$> fmap snd sources ++ [target]
+typeToHaskell (Unnamed (Primitive (Function sources target))) =
+  mconcat ["(", intercalate " -> " $ typeToHaskell <$> fmap snd sources ++ [target], ")"]
 typeToHaskell (Unnamed (Primitive (List t))) = mconcat ["[", typeToHaskell t, "]"]
 typeToHaskell (Unnamed (Any ident)) = snakeCase ident
 typeToHaskell (Named ident) = pascalCase ident
 
 typeToHaskell' :: Type -> String
-typeToHaskell' (Unnamed (Any _)) = "TenkeiPtr"
+typeToHaskell' (Unnamed (Primitive (Function sources target))) = "TenkeiPtr"
 typeToHaskell' (Unnamed (Primitive (List t))) = mconcat ["[", typeToHaskell' t, "]"]
+typeToHaskell' (Unnamed (Any _)) = "TenkeiPtr"
 typeToHaskell' x = typeToHaskell x
 
 generateFunSignature :: FunDef -> (Type -> String) -> String
@@ -107,14 +111,17 @@ externalSignature :: String
 externalSignature = "Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()"
 
 funDefToExport :: FunDef -> [String]
-funDefToExport f@(FunDef name sources _) = (mconcat . snd) <$> filter fst
-  [ (typeVars, [foreignName, "_helper :: ", generateFunSignature f typeToHaskell'])
-  , (typeVars, [foreignName, "_helper = ", functionId name])
-  , (True, [foreignName, " :: ", externalSignature])
-  , (True, [foreignName, " = ", funImpl])
-  , (True, ["foreign export ccall ", foreignName, " :: ", externalSignature])
-  , (True, [""])
-  ]
+funDefToExport f@(FunDef name sources _) =
+  (mconcat . snd) <$>
+  filter
+    fst
+    [ (typeVars, [foreignName, "_helper :: ", generateFunSignature f typeToHaskell'])
+    , (typeVars, [foreignName, "_helper = ", functionId name])
+    , (True, [foreignName, " :: ", externalSignature])
+    , (True, [foreignName, " = ", funImpl])
+    , (True, ["foreign export ccall ", foreignName, " :: ", externalSignature])
+    , (True, [""])
+    ]
   where
     foreignName = foreignFunctionId name
     typeVars = hasTypeVars f
@@ -124,14 +131,22 @@ funDefToExport f@(FunDef name sources _) = (mconcat . snd) <$> filter fst
         then foreignName ++ "_helper"
         else functionId name
     funImpl =
-      case length sources of
-        1 -> printf "offer %s" offerName
-        _ ->
-          printf
-            "offerCBOR (\\(CBOR_Array [%s]) -> serialize $ %s %s)"
-            (intercalate ", " argList)
-            offerName
-            (unwords $ fmap (\s -> "(deserialize " ++ s ++ ")") argList)
+      mconcat
+        [ "offerCBOR (\\(CBOR_Array ["
+        , intercalate ", " argList
+        , "]) -> serialize $ "
+        , offerName
+        , " "
+        , unwords $
+          zipWith
+            (\arg (_, argType) ->
+               case argType of
+                 (Unnamed (Primitive (Function _ _))) -> "(fromFunPointer (deserialize " ++ arg ++ ") tenkei_free)"
+                 _ -> "(deserialize " ++ arg ++ ")")
+            argList
+            sources
+        , ")"
+        ]
 
 funDefToImport :: FunDef -> [String]
 funDefToImport f@(FunDef name sources target) =
@@ -149,22 +164,24 @@ funDefToImport f@(FunDef name sources target) =
       mconcat
         ["deserialize $ callCBOR foreign_", foreignName, " tenkei_free $ CBOR_Array [", intercalate ", " $ fmap ("serialize " ++) args, "]"]
     funImpl args =
-      if hasTypeVars f
-        then intercalate "\n  " $
-             join
-               [ return "unsafePerformIO $ do"
-               , zipWith convArg (fmap snd sources) argList
-               , return $ mif (hasTypeVar target) "fromPointer $ " ++ funImpl' (fmap (++ "'") args)
-               ]
-        else funImpl' args
+      intercalate "\n  " $
+      join
+        [ return "unsafePerformIO $ do"
+        , zipWith convArg (fmap snd sources) argList
+        , return $
+          (if hasTypeVar target
+             then "fromPointer $ "
+             else "return $ ") ++
+          cborImpl (fmap (++ "'") args)
+        ]
     convArg arg argName =
-      if hasTypeVar arg
-        then mconcat [argName, "' <- toPointer ", argName]
-        else mconcat ["let ", argName, "' = ", argName]
-    funImpl' args =
-      case length sources of
-        1 -> mconcat ["call foreign_", foreignName, " tenkei_free ", unwords args]
-        _ -> cborImpl args
+      mconcat $
+      case arg of
+        (Unnamed (Primitive (Function _ _))) -> [argName, "' <- toFunPointer ", argName] --, " tenkei_free"]
+        _ ->
+          if hasTypeVar arg
+            then [argName, "' <- toPointer ", argName]
+            else ["let ", argName, "' = ", argName]
 
 typeDefToText :: NamedTypeDef -> [String]
 typeDefToText (NamedTypeDef name (SumParts parts)) =

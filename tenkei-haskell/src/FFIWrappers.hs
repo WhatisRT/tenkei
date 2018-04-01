@@ -9,8 +9,10 @@ module FFIWrappers
   , offerCBOR
   , tenkeiFree
   , toPointer
+  , toFunPointer
   , toPointerF
   , fromPointer
+  , fromFunPointer
   ) where
 
 import Foreign
@@ -26,6 +28,18 @@ import Data.Binary.Put
 import Data.ByteString.Lazy (pack, unpack)
 
 import Tenkei
+import Pointers
+
+foreign import ccall "wrapper" cborFunctionToPtr
+  :: (Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()) ->
+  IO
+    (FunPtr
+       (Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()))
+
+foreign import ccall "dynamic" cborPtrToFunction
+  :: FunPtr
+  (Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ())
+  -> (Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ())
 
 tenkeiFree :: Ptr Word8 -> CSize -> IO ()
 tenkeiFree args _ = free args
@@ -75,12 +89,18 @@ offer f = offerCBOR $ serialize . f . deserialize
 toPointer :: a -> IO TenkeiPtr
 toPointer = fmap castStablePtrToPtr . newStablePtr
 
+toFunPointer :: (Tenkei a, Tenkei b) => (a -> b) -> IO TenkeiPtr
+toFunPointer = fmap castFunPtrToPtr . cborFunctionToPtr . offer
+
 fromPointer :: TenkeiPtr -> IO a
 fromPointer x = do
   let stable = castPtrToStablePtr x
   contents <- deRefStablePtr stable
   freeStablePtr stable
   return contents
+
+fromFunPointer :: (Tenkei a, Tenkei b) => TenkeiPtr -> (Ptr Word8 -> CSize -> IO ()) -> a -> b
+fromFunPointer x _ = call (cborPtrToFunction $ castPtrToFunPtr x) (\_ _ -> return ()) -- this leaks memory!
 
 toPointerF :: (Traversable f) => f a -> IO (f TenkeiPtr)
 toPointerF = traverse toPointer

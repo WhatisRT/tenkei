@@ -63,32 +63,38 @@ moduleDef = do
 
 primitiveType :: Parser PrimitiveType
 primitiveType =
-  (symbol "()" >> return Unit) <|>
-  (symbol "Bool" >> return Bool) <|>
-  (symbol "Int8" >> return Int8) <|>
-  (symbol "Int16" >> return Int16) <|>
-  (string "Int32" >> return Int32) <|>
-  (string "Int64" >> return Int64) <|>
-  (symbol "UInt8" >> return UInt8) <|>
-  (symbol "UInt16" >> return UInt16) <|>
-  (string "UInt32" >> return UInt32) <|>
-  (string "UInt64" >> return UInt64) <|>
-  (string "Char" >> return CodepointUnicode) <|>
-  (List <$> brackets typeParser)
+  (try $ symbol "()" >> return Unit) <|>
+  (try $ symbol "Bool" >> return Bool) <|>
+  (try $ symbol "Int8" >> return Int8) <|>
+  (try $ symbol "Int16" >> return Int16) <|>
+  (try $ string "Int32" >> return Int32) <|>
+  (try $ string "Int64" >> return Int64) <|>
+  (try $ symbol "UInt8" >> return UInt8) <|>
+  (try $ symbol "UInt16" >> return UInt16) <|>
+  (try $ string "UInt32" >> return UInt32) <|>
+  (try $ string "UInt64" >> return UInt64) <|>
+  (try $ string "Char" >> return CodepointUnicode) <|>
+  (try $ List <$> brackets typeParser) <|>
+  (try $ parens functionTypeParser)
+
+functionTypeParser :: Parser PrimitiveType
+functionTypeParser = do
+  types <- sepBy1 (lexeme typeParser) $ symbol "->"
+  return $ Function (augmentParameters $ init types) $ last types
 
 typeParser :: Parser Type
-typeParser = ((Unnamed . Primitive) <$> try primitiveType) <|> ((Unnamed . Any) <$> snakeCaseIdentifier) <|> fmap Named pascalCaseIdentifier
+typeParser = ((Unnamed . Primitive) <$> primitiveType) <|> ((Unnamed . Any) <$> snakeCaseIdentifier) <|> fmap Named pascalCaseIdentifier
 
 augmentParameters :: [Type] -> [Variable]
 augmentParameters [type_] = [(["param"], type_)]
-augmentParameters types = fmap (\(i, type_) -> ([printf "param%d" i], type_)) $ zip ([0..] :: [Integer]) types
+augmentParameters types = (\(i, type_) -> ([printf "param%d" i], type_)) <$> zip ([0..] :: [Integer]) types
 
 function :: Parser FunDef
 function = do
   name <- lexeme camelCaseIdentifier
   _ <- symbol "::"
-  types <- sepBy1 (lexeme typeParser) $ symbol "->"
-  return $ FunDef name (augmentParameters $ init types) $ last types
+  Function src tgt <- functionTypeParser
+  return $ FunDef name src tgt
 
 typePartsSum :: Parser NamedType
 typePartsSum = fmap SumParts $ sepBy1 constructorParser $ lexeme $ string "|"

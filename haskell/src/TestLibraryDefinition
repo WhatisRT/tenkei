@@ -256,6 +256,66 @@
                     }
                 }
             }
+        },
+        {
+            "funName": [
+                "apply",
+                "function"
+            ],
+            "sources": [
+                [
+                    [
+                        "param0"
+                    ],
+                    {
+                        "tag": "Unnamed",
+                        "contents": {
+                            "tag": "Primitive",
+                            "contents": {
+                                "tag": "Function",
+                                "contents": [
+                                    [
+                                        [
+                                            [
+                                                "param"
+                                            ],
+                                            {
+                                                "tag": "Named",
+                                                "contents": [
+                                                    "int"
+                                                ]
+                                            }
+                                        ]
+                                    ],
+                                    {
+                                        "tag": "Named",
+                                        "contents": [
+                                            "int"
+                                        ]
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                ],
+                [
+                    [
+                        "param1"
+                    ],
+                    {
+                        "tag": "Named",
+                        "contents": [
+                            "int"
+                        ]
+                    }
+                ]
+            ],
+            "target": {
+                "tag": "Named",
+                "contents": [
+                    "int"
+                ]
+            }
         }
     ]
 }

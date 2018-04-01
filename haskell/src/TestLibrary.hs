@@ -1,4 +1,4 @@
-module TestLibrary (modifyArray, invertStringCase, exponentiate, identity, chooseLeft, reverseList) where
+module TestLibrary (modifyArray, invertStringCase, exponentiate, identity, chooseLeft, reverseList, applyFunction) where
 
 import Data.Char
 
@@ -20,6 +20,9 @@ chooseLeft x _ = x
 reverseList :: [a] -> [a]
 reverseList [] = []
 reverseList (x : xs) = reverseList xs ++ [x]
+
+applyFunction :: (Int -> Int) -> Int -> Int
+applyFunction f = f
 
 invertCase :: Char -> Char
 invertCase c | isLower c = toUpper c

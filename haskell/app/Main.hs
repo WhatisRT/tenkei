@@ -14,4 +14,6 @@ main =
     , show $ identity "nice!"
     , show $ chooseLeft "Left" "Right"
     , show $ reverse "reverse this!"
+    , show $ applyFunction (*10) 5
+    , ""
     ]
