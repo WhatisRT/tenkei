@@ -27,17 +27,17 @@ instance Tenkei Int where
     | otherwise = CBOR_SInt $ fromIntegral i
   deserialize (CBOR_UInt i) = fromIntegral i
   deserialize (CBOR_SInt i) = fromIntegral i
-  deserialize _ = error "Error while interpreting CBOR: not an integer"
+  deserialize x = error ("Error while interpreting CBOR: not an integer:\n" ++ show x)
 
 instance Tenkei Char where
   serialize = CBOR_Byte . fromIntegral . fromEnum
   deserialize (CBOR_Byte b) = toEnum $ fromIntegral b
-  deserialize _ = error "Error while interpreting CBOR: not a character"
+  deserialize x = error ("Error while interpreting CBOR: not a character:\n" ++ show x)
 
 instance Tenkei a => Tenkei [a] where
   serialize = CBOR_Array . fmap serialize
   deserialize (CBOR_Array a) = fmap deserialize a
-  deserialize _ = error "Error while interpreting CBOR: not an array"
+  deserialize x = error ("Error while interpreting CBOR: not an array:\n" ++ show x)
 
 serializeS :: All2 Tenkei xss => Integer -> SOP I xss -> CBOR
 serializeS layer (SOP (Z xs)) = CBOR_Array [CBOR_UInt layer, CBOR_Array $ serializeP xs]
