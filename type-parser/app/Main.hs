@@ -3,6 +3,7 @@ module Main (main) where
 import Types
 
 import Generators.Haskell
+import Generators.Python
 import Generators.Rust
 
 import Parsers.Haskell
@@ -35,6 +36,7 @@ actions =
 languages :: [(String, (String -> Maybe DefFile, DefFile -> String, DefFile -> String))]
 languages =
   [ ("haskell", (parseHaskell, generateHaskellLib, generateHaskellInterface))
+  , ("python", (undefined, undefined, generatePythonInterface))
   , ("rust", (parseRust, createRustFile, error "Rust tenkei library generation not yet supported!"))
   ]
 

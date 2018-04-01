@@ -40,3 +40,7 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - haskell-test-lib
+    extra-lib-dirs:
+    - ../python
+    extra-libraries:
+    - my_plugin

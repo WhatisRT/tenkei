@@ -6,8 +6,8 @@ def modify_array(x):
 def exponentiate(x, y):
     return x ** y
 
-def identity(a):
-    return a
+def identity(x):
+    return x
 
 def choose_left(x, y):
     return x
