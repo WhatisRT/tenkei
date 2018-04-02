@@ -9,3 +9,13 @@ def offer(f):
         output_len[0] = len(result)
         DONT_FORGET[result_ptr] += 1
     return offered
+
+def call(f):
+    def called(*args):
+        args_bin = cbor2.dumps(args)
+        result_ptr = ffi.new("uint8_t **")
+        result_len = ffi.new("size_t *")
+        f(ffi.from_buffer(args_bin), len(args_bin), result_ptr, result_len)
+        result = cbor2.loads(bytes(ffi.buffer(result_ptr, result_len)))
+        return result
+    return called
