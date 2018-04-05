@@ -8,6 +8,8 @@ extern "C" {
   extern void tenkei_modify_array(uint8_t *input, size_t input_len, uint8_t **output, size_t *output_len);
   extern void tenkei_invert_string_case(uint8_t *input, size_t input_len, uint8_t **output, size_t *output_len);
   extern void tenkei_exponentiate(uint8_t *input, size_t input_len, uint8_t **output, size_t *output_len);
+  extern void tenkei_identity(uint8_t *input, size_t input_len, uint8_t **output, size_t *output_len);
+  extern void tenkei_choose_left(uint8_t *input, size_t input_len, uint8_t **output, size_t *output_len);
 #ifdef __cplusplus
 }
 #endif
@@ -48,6 +50,32 @@ int32_t exponentiate(int32_t param0, int32_t param1)
   cbor_array_push(args, arg2);
   cbor_item_t *res = call_cbor(tenkei_exponentiate, args);
   int32_t result = deserialize_int32_t(res);
+  cbor_decref(&args);
+  cbor_decref(&res);
+  return result;
+}
+
+void* identity(void* param)
+{
+  cbor_item_t *args = cbor_new_definite_array(1);
+  cbor_item_t *arg1 = serialize_tenkei_ptr(param);
+  cbor_array_push(args, arg1);
+  cbor_item_t *res = call_cbor(tenkei_identity, args);
+  void* result = deserialize_tenkei_ptr(res);
+  cbor_decref(&args);
+  cbor_decref(&res);
+  return result;
+}
+
+void* choose_left(void* param0, void* param1)
+{
+  cbor_item_t *args = cbor_new_definite_array(2);
+  cbor_item_t *arg1 = serialize_tenkei_ptr(param0);
+  cbor_array_push(args, arg1);
+  cbor_item_t *arg2 = serialize_tenkei_ptr(param1);
+  cbor_array_push(args, arg2);
+  cbor_item_t *res = call_cbor(tenkei_choose_left, args);
+  void* result = deserialize_tenkei_ptr(res);
   cbor_decref(&args);
   cbor_decref(&res);
   return result;

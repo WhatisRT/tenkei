@@ -8,6 +8,16 @@ int32_t deserialize_int32_t(const cbor_item_t *cbor)
   return cbor_get_uint32(cbor);
 }
 
+cbor_item_t *serialize_tenkei_ptr(const void *i)
+{
+  return cbor_build_uint64((uint64_t)i);
+}
+
+void *deserialize_tenkei_ptr(const cbor_item_t *cbor)
+{
+  return (void *)cbor_get_uint64(cbor);
+}
+
 cbor_item_t *serialize_list_int32_t(const struct list_int32_t l)
 {
   cbor_item_t *result = cbor_new_definite_array(l.length);

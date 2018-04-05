@@ -43,6 +43,11 @@ int main(int argc, char *argv[])
 
   printf("%d\n", exponentiate(2,5));
 
+  void *ptr_list = &list;
+
+  struct list_int32_t *res3 = identity(ptr_list);
+  print_list(*res3);
+
   fflush(stdout);
 
   hs_exit();

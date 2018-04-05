@@ -84,6 +84,7 @@ generateCInterface' (DefFile libName funDefs typeDefs) =
 typeToC :: Type -> String
 typeToC (Named ident) = "struct " ++ typeId ident
 typeToC (Unnamed (Primitive (List t))) = "struct list_" ++ typeToC' t
+typeToC (Unnamed (Any _)) = "void*"
 typeToC x = typeToC' x
 
 typeToC' :: Type -> String
@@ -105,19 +106,17 @@ typeToC' (Unnamed (Primitive StringUTF8)) = "String"
 typeToC' (Unnamed (Primitive (Function sources target))) =
   typeToC target ++ "(f*)(" ++ (intercalate ", " $ fmap (\(_,t) -> typeToC t ++ "*") sources) ++ ")"
 typeToC' (Unnamed (Primitive (List t))) = "list_" ++ typeToC' t
-typeToC' (Unnamed (Any ident)) = "void*"
+typeToC' (Unnamed (Any ident)) = "tenkei_ptr"
 typeToC' (Named ident) = typeId ident
+
+typeToSerializer :: Type -> String
+typeToSerializer (Unnamed (Any _)) = "tenkei_ptr"
+typeToSerializer x = typeToC' x
 
 variableToC :: Variable -> String
 variableToC (name, (Unnamed (Primitive (Function sources target)))) =
   typeToC target ++ "(" ++ variableId name ++ "*)(" ++ (intercalate ", " $ fmap (\(_,t) -> typeToC t ++ "*") sources) ++ ")"
 variableToC (name, t) = typeToC t ++ " " ++ variableId name
-
---typeToC' :: Type -> String
---typeToC' (Unnamed (Primitive (Function sources target))) = "TenkeiPtr"
---typeToC' (Unnamed (Primitive (List t))) = mconcat ["[", typeToC' t, "]"]
---typeToC' (Unnamed (Any _)) = "TenkeiPtr"
---typeToC' x = typeToC x
 
 mif :: Monoid m => Bool -> m -> m
 mif True = id
@@ -142,13 +141,13 @@ funDefToImport f@(FunDef name sources target) =
      join (
       zipWith
         (\(n, t) i ->
-           [ "cbor_item_t *arg" ++ show i ++ " = serialize_" ++ typeToC' t ++ "(" ++ variableId n ++ ");"
+           [ "cbor_item_t *arg" ++ show i ++ " = serialize_" ++ typeToSerializer t ++ "(" ++ variableId n ++ ");"
            , "cbor_array_push(args, arg" ++ show i ++ ");"
            ])
         sources
         [1 ..]) ++
      [ "cbor_item_t *res = call_cbor(" ++ foreignFunctionId name ++ ", args);"
-     , typeToC target ++ " result = deserialize_" ++ typeToC' target ++ "(res);"
+     , typeToC target ++ " result = deserialize_" ++ typeToSerializer target ++ "(res);"
      , "cbor_decref(&args);"
      , "cbor_decref(&res);"
      , "return result;"
