@@ -8,9 +8,10 @@ module ExampleTypes where
 import qualified GHC.Generics as GHC
 import Generics.SOP
 import Tenkei
+import Data.Int
 
 data Test
-  = Test1 Int
+  = Test1 Int32
   | Test2
   | Test3
   | Test4

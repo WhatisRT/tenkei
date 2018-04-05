@@ -22,10 +22,13 @@
                             "contents": {
                                 "tag": "List",
                                 "contents": {
-                                    "tag": "Named",
-                                    "contents": [
-                                        "int"
-                                    ]
+                                    "tag": "Unnamed",
+                                    "contents": {
+                                        "tag": "Primitive",
+                                        "contents": {
+                                            "tag": "Int32"
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -39,10 +42,13 @@
                     "contents": {
                         "tag": "List",
                         "contents": {
-                            "tag": "Named",
-                            "contents": [
-                                "int"
-                            ]
+                            "tag": "Unnamed",
+                            "contents": {
+                                "tag": "Primitive",
+                                "contents": {
+                                    "tag": "Int32"
+                                }
+                            }
                         }
                     }
                 }
@@ -108,10 +114,13 @@
                         "param0"
                     ],
                     {
-                        "tag": "Named",
-                        "contents": [
-                            "int"
-                        ]
+                        "tag": "Unnamed",
+                        "contents": {
+                            "tag": "Primitive",
+                            "contents": {
+                                "tag": "Int32"
+                            }
+                        }
                     }
                 ],
                 [
@@ -119,18 +128,24 @@
                         "param1"
                     ],
                     {
-                        "tag": "Named",
-                        "contents": [
-                            "int"
-                        ]
+                        "tag": "Unnamed",
+                        "contents": {
+                            "tag": "Primitive",
+                            "contents": {
+                                "tag": "Int32"
+                            }
+                        }
                     }
                 ]
             ],
             "target": {
-                "tag": "Named",
-                "contents": [
-                    "int"
-                ]
+                "tag": "Unnamed",
+                "contents": {
+                    "tag": "Primitive",
+                    "contents": {
+                        "tag": "Int32"
+                    }
+                }
             }
         },
         {
@@ -280,18 +295,24 @@
                                                 "param"
                                             ],
                                             {
-                                                "tag": "Named",
-                                                "contents": [
-                                                    "int"
-                                                ]
+                                                "tag": "Unnamed",
+                                                "contents": {
+                                                    "tag": "Primitive",
+                                                    "contents": {
+                                                        "tag": "Int32"
+                                                    }
+                                                }
                                             }
                                         ]
                                     ],
                                     {
-                                        "tag": "Named",
-                                        "contents": [
-                                            "int"
-                                        ]
+                                        "tag": "Unnamed",
+                                        "contents": {
+                                            "tag": "Primitive",
+                                            "contents": {
+                                                "tag": "Int32"
+                                            }
+                                        }
                                     }
                                 ]
                             }
@@ -303,18 +324,24 @@
                         "param1"
                     ],
                     {
-                        "tag": "Named",
-                        "contents": [
-                            "int"
-                        ]
+                        "tag": "Unnamed",
+                        "contents": {
+                            "tag": "Primitive",
+                            "contents": {
+                                "tag": "Int32"
+                            }
+                        }
                     }
                 ]
             ],
             "target": {
-                "tag": "Named",
-                "contents": [
-                    "int"
-                ]
+                "tag": "Unnamed",
+                "contents": {
+                    "tag": "Primitive",
+                    "contents": {
+                        "tag": "Int32"
+                    }
+                }
             }
         }
     ]

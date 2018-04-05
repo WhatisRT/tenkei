@@ -1,14 +1,15 @@
 module TestLibrary (modifyArray, invertStringCase, exponentiate, identity, chooseLeft, reverseList, applyFunction) where
 
 import Data.Char
+import Data.Int
 
-modifyArray :: [Int] -> [Int]
+modifyArray :: [Int32] -> [Int32]
 modifyArray = zipWith (*) [1..]
 
 invertStringCase :: [Char] -> [Char]
 invertStringCase = fmap invertCase
 
-exponentiate :: Int -> Int -> Int
+exponentiate :: Int32 -> Int32 -> Int32
 exponentiate x y = x^y
 
 identity :: a -> a
@@ -21,7 +22,7 @@ reverseList :: [a] -> [a]
 reverseList [] = []
 reverseList (x : xs) = reverseList xs ++ [x]
 
-applyFunction :: (Int -> Int) -> Int -> Int
+applyFunction :: (Int32 -> Int32) -> Int32 -> Int32
 applyFunction f = f
 
 invertCase :: Char -> Char

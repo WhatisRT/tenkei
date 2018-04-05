@@ -11,6 +11,8 @@ import Data.CBOR
 import Data.Maybe
 import Generics.SOP
 
+import Data.Int
+
 class Tenkei a where
   serialize :: a -> CBOR
   default serialize :: (Generic a, All2 Tenkei (Code a)) =>
@@ -21,7 +23,7 @@ class Tenkei a where
     CBOR -> a
   deserialize = to . deserializeS
 
-instance Tenkei Int where
+instance Tenkei Int32 where
   serialize i
     | i >= 0 = CBOR_UInt $ fromIntegral i
     | otherwise = CBOR_SInt $ fromIntegral i
@@ -30,8 +32,8 @@ instance Tenkei Int where
   deserialize x = error ("Error while interpreting CBOR: not an integer:\n" ++ show x)
 
 instance Tenkei Char where
-  serialize = CBOR_Byte . fromIntegral . fromEnum
-  deserialize (CBOR_Byte b) = toEnum $ fromIntegral b
+  serialize = CBOR_UInt . fromIntegral . fromEnum
+  deserialize (CBOR_UInt b) = toEnum $ fromIntegral b
   deserialize x = error ("Error while interpreting CBOR: not a character:\n" ++ show x)
 
 instance Tenkei a => Tenkei [a] where
