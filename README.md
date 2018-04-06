@@ -1,8 +1,8 @@
-## Tenkei Specification
+# Tenkei Specification
 
 All types are serialized using CBOR. See eg. wikipedia for details.
 
-# Primitive types
+## Primitive types
 Type     | Major types | Additional information | Notes
 ---------|-------------|------------------------|-----------------------------
 unit     | ?           | ?                      | Not implemented
@@ -22,31 +22,32 @@ codepoint_unicode | ?  | ?                      | Not implemented
 string_utf8 | 3        | 0-27                   |
 list     | 4           | 0-31                   |
 
-# Composite types
+## Composite types
 * Sums: A_1 + ... + A_n is encoded as a 2-element list: the first element is some index i, the second element is the serialized value of some element of type A_i
 * Products: A_1 x ... x A_n is encoded as an n-element list
 
-# Type variables
+## Type variables
 Types may leave variables in their definition (the canonical example being list). There are two strategies for serializing such types:
 * Serialize everything
 * Replace the type that was substituted into a variable with a pointer type, and serialize the pointer (as a regular unsigned integer)
-The second strategy has the advantage of needing less work, but a function might require more information than just a pointer to be computed.
+The second strategy has the advantage of needing less work, but a function might require more information than just a pointer to be computed. Note: to be able to implement the second strategy, the type has to be a (traversable) functor on the type system.
 
-# Function calls
+## Function calls
 Tenkei functions take a bytestring of CBOR values as arguments and return such a bytestring. All arguments have to be bundled together in a CBOR array, where the order of the arguments determines which CBOR value corresponds to which argument. Note that a one argument function still requires to be packaged into an array, which is an overhead of one byte.
 The bytestrings are passed by specifying pointers to memory locations and giving the lenghts of the bytestrings. On the level of C libraries, a tenkei function f has the following signature:
 `void tenkei_f(uint8_t *, size_t, uint8_t **, size_t *)`
 The first two arguments correspond to the input bytestring, the second two to the output bytestrings.
 
-# Functions & Type variables
+## Functions & Type variables
 Let S and T be two types with a type variable and A be a type without a type variable. A function of type A -> S a or S a -> A will in general need to serialize everything for the type S a to be computed, or to return the result. On the other hand, a function S a -> T a what works for all types a can never use any sepecific information about a, so it can instead be viewed as a function S ptr -> T ptr where the serializers only serialize the data up to the pointers. Thus, in the presence of type variables, the correct serialization strategy has to be chosen.
 
-# Function pointers
-Tenkei functions can accept function pointers (but the type of these function pointers must not contain type variables for the time being, see issue #2). These are passed around just like regular pointers. These functions must have the same (C) signature as other tenkei functions.
+## Function pointers
+Tenkei functions can accept function pointers (but the type of these function pointers must not contain type variables for the time being, see issue #2). These are passed around just like regular pointers. These functions must have the same (C) signature as other tenkei functions. Note: there is currently no mechanism to pass the correct free function required with function pointers.
 
-# Next version of the specification
+## Next version of the specification
 * Decide how to implement the primitives unit and codepoint_unicode
 * Add primitives: bigint? bytestring?
 * Make arguments of the tenkei functions constant
 * Tenkei functions should return int instead of void, to communicate basic errors
+* Add a way of passing free functions together with function pointers
 * Function pointers with type variables
