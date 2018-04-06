@@ -1,4 +1,4 @@
-#include "../lib/ffi_wrappers.c"
+#include "../libtenkei-c/ffi_wrappers.c"
 
 #ifdef __cplusplus
 extern "C" {

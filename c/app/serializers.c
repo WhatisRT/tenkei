@@ -2,7 +2,7 @@
 #define __serializers__
 
 #include "cbor.h"
-#include "../lib/serializers.c"
+#include "../libtenkei-c/serializers.c"
 
 cbor_item_t *serialize_list_int32_t(const struct list_int32_t l)
 {
