@@ -8,3 +8,7 @@
 .cabal-sandbox
 .stack-work
 \#*#
+CMakeCache.txt
+CMakeFiles
+cmake_install.cmake
+Makefile

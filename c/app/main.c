@@ -1,7 +1,7 @@
 #include "cbor.h"
 #include <stdio.h>
-#include "ffi_wrappers.c"
 #include "test_library_tenkei.c"
+#include "serializers.c"
 
 void print_list(const struct list_int32_t l)
 {

@@ -1,22 +1,8 @@
-cbor_item_t *serialize_int32_t(const int32_t i)
-{
-  return cbor_build_uint32(i);
-}
+#ifndef __serializers__
+#define __serializers__
 
-int32_t deserialize_int32_t(const cbor_item_t *cbor)
-{
-  return cbor_get_uint32(cbor);
-}
-
-cbor_item_t *serialize_tenkei_ptr(const void *i)
-{
-  return cbor_build_uint64((size_t) i);
-}
-
-void *deserialize_tenkei_ptr(const cbor_item_t *cbor)
-{
-  return (void *)cbor_get_uint64(cbor);
-}
+#include "cbor.h"
+#include "../lib/serializers.c"
 
 cbor_item_t *serialize_list_int32_t(const struct list_int32_t l)
 {
@@ -89,3 +75,5 @@ struct list_char deserialize_list_char(const cbor_item_t *cbor)
   struct list_char result = {res_, res_len};
   return result;
 }
+
+#endif

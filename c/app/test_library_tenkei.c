@@ -1,3 +1,5 @@
+#include "../lib/ffi_wrappers.c"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -107,4 +109,3 @@ struct list_tenkei_ptr reverse_list(struct list_tenkei_ptr param)
   cbor_decref(&res);
   return result;
 }
-
