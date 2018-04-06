@@ -79,7 +79,10 @@ generateCInterface' (DefFile libName funDefs typeDefs) =
   ] ++
   indent 2 (funDefs >>= funDefToLibImport) ++
   ["#ifdef __cplusplus", "}", "#endif", ""] ++
-  (typeDefs >>= typeDefToText) ++ ["#include \"helpers.c\"", "#include \"serializers.c\"", ""] ++ (funDefs >>= funDefToImport)
+  (typeDefs >>= typeDefToText) ++ (requiredTypes >>= primitiveTypeDefToText ) ++ ["#include \"serializers.c\"", ""] ++ (funDefs >>= funDefToImport)
+  where
+    types (FunDef _ sources target) = target : fmap snd sources
+    requiredTypes = nub $ funDefs >>= types
 
 typeToC :: Type -> String
 typeToC (Named ident) = "struct " ++ typeId ident
@@ -159,3 +162,11 @@ typeDefToText = undefined
 --typeDefToText (NamedTypeDef name (SumParts parts)) =
 --typeDefToText (NamedTypeDef name (ProdParts parts)) =
 --typeDefToText (NamedTypeDef name Opaque) = [printf "data %s = Opaque%s Integer" (typeId name) (typeId name)]
+
+primitiveTypeDefToText :: Type -> [String]
+primitiveTypeDefToText (Unnamed (Primitive (List t))) =
+  ["struct list_" ++ typeToC' t ++ " {", "  " ++ typeName ++ " *start;", "  unsigned int length;", "};", ""]
+  where typeName = case t of
+          Unnamed (Any _) -> "void *"
+          _ -> typeToC' t
+primitiveTypeDefToText _ = []

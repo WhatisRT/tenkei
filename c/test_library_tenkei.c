@@ -10,11 +10,26 @@ extern "C" {
   extern void tenkei_exponentiate(uint8_t *input, size_t input_len, uint8_t **output, size_t *output_len);
   extern void tenkei_identity(uint8_t *input, size_t input_len, uint8_t **output, size_t *output_len);
   extern void tenkei_choose_left(uint8_t *input, size_t input_len, uint8_t **output, size_t *output_len);
+  extern void tenkei_reverse_list(uint8_t *input, size_t input_len, uint8_t **output, size_t *output_len);
 #ifdef __cplusplus
 }
 #endif
 
-#include "helpers.c"
+struct list_int32_t {
+  int32_t *start;
+  unsigned int length;
+};
+
+struct list_char {
+  char *start;
+  unsigned int length;
+};
+
+struct list_tenkei_ptr {
+  void * *start;
+  unsigned int length;
+};
+
 #include "serializers.c"
 
 struct list_int32_t modify_array(struct list_int32_t param)
@@ -80,3 +95,16 @@ void* choose_left(void* param0, void* param1)
   cbor_decref(&res);
   return result;
 }
+
+struct list_tenkei_ptr reverse_list(struct list_tenkei_ptr param)
+{
+  cbor_item_t *args = cbor_new_definite_array(1);
+  cbor_item_t *arg1 = serialize_list_tenkei_ptr(param);
+  cbor_array_push(args, arg1);
+  cbor_item_t *res = call_cbor(tenkei_reverse_list, args);
+  struct list_tenkei_ptr result = deserialize_list_tenkei_ptr(res);
+  cbor_decref(&args);
+  cbor_decref(&res);
+  return result;
+}
+

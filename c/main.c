@@ -23,6 +23,30 @@ void print_list_char(const struct list_char l)
   fflush(stdout);
 }
 
+struct list_tenkei_ptr list_int32_t_to_list_tenkei_ptr(const struct list_int32_t l)
+{
+  void **list_ = malloc(sizeof(void *) * l.length);
+
+  for(int i = 0; i < l.length; i++)
+    list_[i] = &l.start[i];
+
+  struct list_tenkei_ptr res = {list_, l.length};
+
+  return res;
+}
+
+struct list_int32_t list_tenkei_ptr_to_list_int32_t(const struct list_tenkei_ptr l)
+{
+  int32_t *list_ = malloc(sizeof(int32_t) * l.length);
+
+  for(int i = 0; i < l.length; i++)
+    list_[i] = (*(int32_t*)(l.start[i]));
+
+  struct list_int32_t res = {list_, l.length};
+
+  return res;
+}
+
 int main(int argc, char *argv[])
 {
   hs_init(&argc, &argv);
@@ -47,6 +71,19 @@ int main(int argc, char *argv[])
 
   struct list_int32_t *res3 = identity(ptr_list);
   print_list(*res3);
+
+  int i1 = 1;
+  int i2 = 2;
+
+  printf("%d\n", *(int *)choose_left((void*)&i1, (void*)&i2));
+
+  struct list_tenkei_ptr list3 = list_int32_t_to_list_tenkei_ptr(list);
+
+  struct list_tenkei_ptr res4 = reverse_list(list3);
+
+  struct list_int32_t res5 = list_tenkei_ptr_to_list_int32_t(res4);
+
+  print_list(res5);
 
   fflush(stdout);
 
