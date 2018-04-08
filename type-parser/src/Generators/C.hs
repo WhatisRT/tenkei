@@ -1,46 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleContexts #-}
 
-module Generators.C where
+module Generators.C (generateCInterface, generateCLib) where
 
 import Control.Monad
 import Data.List
 import Generators.General
-import Text.Printf
 import Types
-
-libHeader :: String -> [String]
-libHeader libName =
-  [ "{-# LANGUAGE ForeignFunctionInterface #-}"
-  , ""
-  , "module " ++ libName ++ " where"
-  , ""
-  , "import Foreign"
-  , "import Foreign.C"
-  , ""
-  , "import Data.CBOR"
-  , "import FFIWrappers"
-  , "import System.IO.Unsafe"
-  , "import Pointers"
-  , "import Tenkei"
-  , ""
-  , "foreign import ccall \"tenkei_free\" tenkei_free :: Ptr Word8 -> CSize -> IO ()"
-  , ""
-  ]
-
-interfaceHeader :: String -> [String]
-interfaceHeader libName =
-  [ "#ifdef __cplusplus"
-  , "extern \"C\" {"
-  , "#endif"
-  , "  extern void tenkei_free(uint8_t *buffer, size_t buffer_len);"
-  , "  extern void hs_init(int* argc, char** argv[]);"
-  , "  extern void hs_exit();"
-  , "#ifdef __cplusplus"
-  , "}"
-  , "#endif"
-  , ""
-  ]
 
 typeId :: Identifier -> String
 typeId = snakeCase
@@ -62,7 +28,12 @@ generateCLib = unlines . generateCLib'
 
 generateCLib' :: DefFile -> [String]
 generateCLib' (DefFile libName funDefs typeDefs) =
-  libHeader (pascalCase libName) ++ (funDefs >>= funDefToImport) ++ (typeDefs >>= typeDefToText)
+  [ "#include \"" ++ snakeCase libName ++ ".c\""
+  , "#include \"../libtenkei-c/serializers.c\""
+  , "#include \"../libtenkei-c/ffi_wrappers.c\""
+  , ""
+  ] ++
+  (funDefs >>= funDefToExport)
 
 generateCInterface :: DefFile -> String
 generateCInterface = unlines . generateCInterface'
@@ -121,12 +92,23 @@ variableToC (name, (Unnamed (Primitive (Function sources target)))) =
   typeToC target ++ "(" ++ variableId name ++ "*)(" ++ (intercalate ", " $ fmap (\(_,t) -> typeToC t ++ "*") sources) ++ ")"
 variableToC (name, t) = typeToC t ++ " " ++ variableId name
 
-mif :: Monoid m => Bool -> m -> m
-mif True = id
-mif False = const mempty
-
 funDefToExport :: FunDef -> [String]
-funDefToExport f@(FunDef name sources _) = undefined
+funDefToExport (FunDef name sources target) =
+  ["cbor_item_t *cbor_" ++ functionId name ++ "(cbor_item_t *args)", "{"] ++
+  indent
+    2
+    (["cbor_item_t **arg_list = cbor_array_handle(args);"] ++
+     zipWith deserializeArg [0 ..] (fmap snd sources) ++
+     [ typeToC target ++ " res = " ++ functionId name ++ "(" ++ intercalate ", " argList ++ ");"
+     , "cbor_item_t *result = serialize_" ++ typeToSerializer target ++ "(res);"
+     , "return result;"
+     ]) ++
+  ["};", "", "void tenkei_" ++ functionId name ++ "(uint8_t *input, size_t input_len, uint8_t **output, size_t *output_len)", "{"] ++
+  indent 2 ["offer_cbor(cbor_" ++ functionId name ++ ", input, input_len, output, output_len);"] ++ ["}", ""]
+  where
+    argList = fmap (("arg" ++) . show) [0 .. length sources - 1]
+    deserializeArg index argType =
+      typeToC argType ++ " arg" ++ show index ++ " = deserialize_" ++ typeToSerializer argType ++ "(arg_list[" ++ show index ++ "]);"
 
 funDefToLibImport :: FunDef -> [String]
 funDefToLibImport (FunDef name _ _) =

@@ -19,11 +19,11 @@ modifyArray arg1 = unsafePerformIO $ do
   let arg1' = arg1
   return $ deserialize $ callCBOR foreign_tenkei_modify_array tenkei_free $ CBOR_Array [serialize arg1']
 
-foreign import ccall "tenkei_invert_string_case" foreign_tenkei_invert_string_case :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
-invertStringCase :: [Char] -> [Char]
-invertStringCase arg1 = unsafePerformIO $ do
-  let arg1' = arg1
-  return $ deserialize $ callCBOR foreign_tenkei_invert_string_case tenkei_free $ CBOR_Array [serialize arg1']
+-- foreign import ccall "tenkei_invert_string_case" foreign_tenkei_invert_string_case :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
+-- invertStringCase :: [Char] -> [Char]
+-- invertStringCase arg1 = unsafePerformIO $ do
+--   let arg1' = arg1
+--   return $ deserialize $ callCBOR foreign_tenkei_invert_string_case tenkei_free $ CBOR_Array [serialize arg1']
 
 foreign import ccall "tenkei_exponentiate" foreign_tenkei_exponentiate :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
 exponentiate :: Int32 -> Int32 -> Int32

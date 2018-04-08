@@ -1,4 +1,4 @@
-#include "../libtenkei-c/ffi_wrappers.c"
+#include "../lib/ffi_wrappers.c"
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,18 +41,6 @@ struct list_int32_t modify_array(struct list_int32_t param)
   cbor_array_push(args, arg1);
   cbor_item_t *res = call_cbor(tenkei_modify_array, args);
   struct list_int32_t result = deserialize_list_int32_t(res);
-  cbor_decref(&args);
-  cbor_decref(&res);
-  return result;
-}
-
-struct list_char invert_string_case(struct list_char param)
-{
-  cbor_item_t *args = cbor_new_definite_array(1);
-  cbor_item_t *arg1 = serialize_list_char(param);
-  cbor_array_push(args, arg1);
-  cbor_item_t *res = call_cbor(tenkei_invert_string_case, args);
-  struct list_char result = deserialize_list_char(res);
   cbor_decref(&args);
   cbor_decref(&res);
   return result;

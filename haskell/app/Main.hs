@@ -13,7 +13,7 @@ main =
     , show $ fmap (exponentiate 2) [1 .. 20]
     , show $ identity "nice!"
     , show $ chooseLeft "Left" "Right"
-    --, show $ reverse "reverse this!"
+    , show $ reverse "reverse this!"
     --, show $ applyFunction (*10) 5
     , ""
     ]

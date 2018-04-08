@@ -36,7 +36,7 @@ actions =
 
 languages :: [(String, (String -> Maybe DefFile, DefFile -> String, DefFile -> String))]
 languages =
-  [ ("c", (undefined, undefined, generateCInterface))
+  [ ("c", (undefined, generateCLib, generateCInterface))
   , ("haskell", (parseHaskell, generateHaskellLib, generateHaskellInterface))
   , ("python", (undefined, undefined, generatePythonInterface))
   , ("rust", (parseRust, createRustFile, error "Rust tenkei library generation not yet supported!"))
