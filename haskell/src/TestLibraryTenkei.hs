@@ -19,9 +19,9 @@ tenkei_modify_array :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO 
 tenkei_modify_array = offerCBOR (\(CBOR_Array [arg1]) -> serialize $ modifyArray (deserialize arg1))
 foreign export ccall tenkei_modify_array :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
 
-tenkei_invert_string_case :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
-tenkei_invert_string_case = offerCBOR (\(CBOR_Array [arg1]) -> serialize $ invertStringCase (deserialize arg1))
-foreign export ccall tenkei_invert_string_case :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
+-- tenkei_invert_string_case :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
+-- tenkei_invert_string_case = offerCBOR (\(CBOR_Array [arg1]) -> serialize $ invertStringCase (deserialize arg1))
+-- foreign export ccall tenkei_invert_string_case :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
 
 tenkei_exponentiate :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
 tenkei_exponentiate = offerCBOR (\(CBOR_Array [arg1, arg2]) -> serialize $ exponentiate (deserialize arg1) (deserialize arg2))
