@@ -27,7 +27,11 @@ struct list_int32_t modify_array(struct list_int32_t l)
 
 int32_t exponentiate(int32_t x, int32_t y)
 {
-  return x ^ y;
+  int32_t acc = 1;
+  for(int i = 0; i < y; i++)
+    acc *= x;
+
+  return acc;
 }
 
 void *identity(void *x)
