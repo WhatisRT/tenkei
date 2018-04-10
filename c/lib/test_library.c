@@ -19,7 +19,7 @@ struct list_int32_t modify_array(struct list_int32_t l)
 {
   for(int i = 0; i < l.length; i++)
   {
-    l.start[i] *= i;
+    l.start[i] *= (i + 1);
   }
 
   return l;
@@ -46,9 +46,7 @@ struct list_tenkei_ptr reverse_list(struct list_tenkei_ptr l)
   struct list_tenkei_ptr res = {list_, l.length};
 
   for(int i = 0; i < l.length; i++)
-  {
-    list_[i] = l.start[l.length - i];
-  }
+    list_[i] = l.start[l.length - i - 1];
 
   return res;
 }

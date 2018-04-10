@@ -49,7 +49,7 @@ struct list_int32_t list_tenkei_ptr_to_list_int32_t(const struct list_tenkei_ptr
 
 int main(int argc, char *argv[])
 {
-  hs_init(&argc, &argv);
+  //hs_init(&argc, &argv);
 
   int list_[] = {1,2,3,4,5,6,7,8,9,10};
   struct list_int32_t list = {list_, 10};
@@ -57,13 +57,6 @@ int main(int argc, char *argv[])
   struct list_int32_t res = modify_array(list);
 
   print_list(res);
-
-  char list2_[] = "this IS a Test string";
-  struct list_char list2 = {list2_, 22};
-
-  struct list_char res2 = invert_string_case(list2);
-
-  print_list_char(res2);
 
   printf("%d\n", exponentiate(2,5));
 
@@ -87,5 +80,5 @@ int main(int argc, char *argv[])
 
   fflush(stdout);
 
-  hs_exit();
+  //hs_exit();
 }

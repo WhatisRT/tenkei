@@ -1,11 +1,11 @@
-#include "../lib/ffi_wrappers.c"
+#include "../libtenkei-c/ffi_wrappers.c"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
   extern void tenkei_free(uint8_t *buffer, size_t buffer_len);
-  extern void hs_init(int* argc, char** argv[]);
-  extern void hs_exit();
+  //extern void hs_init(int* argc, char** argv[]);
+  //extern void hs_exit();
 
   extern void tenkei_modify_array(uint8_t *input, size_t input_len, uint8_t **output, size_t *output_len);
   extern void tenkei_invert_string_case(uint8_t *input, size_t input_len, uint8_t **output, size_t *output_len);
