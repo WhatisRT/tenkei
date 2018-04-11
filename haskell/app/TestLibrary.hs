@@ -13,17 +13,16 @@ import Tenkei
 
 foreign import ccall "tenkei_free" tenkei_free :: Ptr Word8 -> CSize -> IO ()
 
+foreign import ccall "tenkei_library_language" foreign_tenkei_library_language :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
+libraryLanguage :: [Int32]
+libraryLanguage  = unsafePerformIO $ do
+  return $ deserialize $ callCBOR foreign_tenkei_library_language tenkei_free $ CBOR_Array []
+
 foreign import ccall "tenkei_modify_array" foreign_tenkei_modify_array :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
 modifyArray :: [Int32] -> [Int32]
 modifyArray arg1 = unsafePerformIO $ do
   let arg1' = arg1
   return $ deserialize $ callCBOR foreign_tenkei_modify_array tenkei_free $ CBOR_Array [serialize arg1']
-
--- foreign import ccall "tenkei_invert_string_case" foreign_tenkei_invert_string_case :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
--- invertStringCase :: [Char] -> [Char]
--- invertStringCase arg1 = unsafePerformIO $ do
---   let arg1' = arg1
---   return $ deserialize $ callCBOR foreign_tenkei_invert_string_case tenkei_free $ CBOR_Array [serialize arg1']
 
 foreign import ccall "tenkei_exponentiate" foreign_tenkei_exponentiate :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
 exponentiate :: Int32 -> Int32 -> Int32
@@ -50,11 +49,4 @@ reverseList :: [a] -> [a]
 reverseList arg1 = unsafePerformIO $ do
   arg1' <- toPointer arg1
   fromPointer $ deserialize $ callCBOR foreign_tenkei_reverse_list tenkei_free $ CBOR_Array [serialize arg1']
-
-foreign import ccall "tenkei_apply_function" foreign_tenkei_apply_function :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
-applyFunction :: (Int32 -> Int32) -> Int32 -> Int32
-applyFunction arg1 arg2 = unsafePerformIO $ do
-  arg1' <- toFunPointer arg1
-  let arg2' = arg2
-  return $ deserialize $ callCBOR foreign_tenkei_apply_function tenkei_free $ CBOR_Array [serialize arg1', serialize arg2']
 

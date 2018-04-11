@@ -15,6 +15,8 @@ struct list_tenkei_ptr {
   unsigned int length;
 };
 
+struct list_int32_t library_language();
+
 struct list_int32_t modify_array(struct list_int32_t l);
 
 int32_t exponentiate(int32_t x, int32_t y);

@@ -2,6 +2,19 @@
 #include "../app/serializers.c"
 #include "../libtenkei-c/ffi_wrappers.c"
 
+cbor_item_t *cbor_library_language(cbor_item_t *args)
+{
+  cbor_item_t **arg_list = cbor_array_handle(args);
+  struct list_int32_t res = library_language();
+  cbor_item_t *result = serialize_list_int32_t(res);
+  return result;
+};
+
+void tenkei_library_language(uint8_t *input, size_t input_len, uint8_t **output, size_t *output_len)
+{
+  offer_cbor(cbor_library_language, input, input_len, output, output_len);
+}
+
 cbor_item_t *cbor_modify_array(cbor_item_t *args)
 {
   cbor_item_t **arg_list = cbor_array_handle(args);
@@ -73,3 +86,4 @@ void tenkei_reverse_list(uint8_t *input, size_t input_len, uint8_t **output, siz
 {
   offer_cbor(cbor_reverse_list, input, input_len, output, output_len);
 }
+

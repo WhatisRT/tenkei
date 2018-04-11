@@ -7,8 +7,8 @@ extern "C" {
   //extern void hs_init(int* argc, char** argv[]);
   //extern void hs_exit();
 
+  extern void tenkei_library_language(uint8_t *input, size_t input_len, uint8_t **output, size_t *output_len);
   extern void tenkei_modify_array(uint8_t *input, size_t input_len, uint8_t **output, size_t *output_len);
-  extern void tenkei_invert_string_case(uint8_t *input, size_t input_len, uint8_t **output, size_t *output_len);
   extern void tenkei_exponentiate(uint8_t *input, size_t input_len, uint8_t **output, size_t *output_len);
   extern void tenkei_identity(uint8_t *input, size_t input_len, uint8_t **output, size_t *output_len);
   extern void tenkei_choose_left(uint8_t *input, size_t input_len, uint8_t **output, size_t *output_len);
@@ -22,17 +22,22 @@ struct list_int32_t {
   unsigned int length;
 };
 
-struct list_char {
-  char *start;
-  unsigned int length;
-};
-
 struct list_tenkei_ptr {
   void * *start;
   unsigned int length;
 };
 
 #include "serializers.c"
+
+struct list_int32_t library_language()
+{
+  cbor_item_t *args = cbor_new_definite_array(0);
+  cbor_item_t *res = call_cbor(tenkei_library_language, args);
+  struct list_int32_t result = deserialize_list_int32_t(res);
+  cbor_decref(&args);
+  cbor_decref(&res);
+  return result;
+}
 
 struct list_int32_t modify_array(struct list_int32_t param)
 {
@@ -97,3 +102,4 @@ struct list_tenkei_ptr reverse_list(struct list_tenkei_ptr param)
   cbor_decref(&res);
   return result;
 }
+

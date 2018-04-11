@@ -52,28 +52,4 @@ struct list_tenkei_ptr deserialize_list_tenkei_ptr(const cbor_item_t *cbor)
   return result;
 }
 
-cbor_item_t *serialize_list_char(const struct list_char l)
-{
-  cbor_item_t *result = cbor_new_definite_array(l.length);
-
-  for(int i = 0; i < l.length; i++)
-    cbor_array_push(result, cbor_build_uint8(l.start[i]));
-
-  return result;
-}
-
-struct list_char deserialize_list_char(const cbor_item_t *cbor)
-{
-  cbor_item_t **res_list = cbor_array_handle(cbor);
-  size_t res_len = cbor_array_size(cbor);
-
-  char *res_ = malloc(sizeof(char) * res_len);
-
-  for(int i = 0; i < res_len; i++)
-    res_[i] = cbor_get_uint8(res_list[i]);
-
-  struct list_char result = {res_, res_len};
-  return result;
-}
-
 #endif

@@ -15,6 +15,15 @@ struct list_tenkei_ptr {
   unsigned int length;
 };
 
+struct list_int32_t library_language()
+{
+  int32_t *list_ = malloc(sizeof(int32_t) * 1);
+  struct list_int32_t res = {list_, 1};
+  list_[0] = 99;
+
+  return res;
+}
+
 struct list_int32_t modify_array(struct list_int32_t l)
 {
   for(int i = 0; i < l.length; i++)

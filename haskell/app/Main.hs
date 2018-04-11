@@ -2,13 +2,16 @@ module Main where
 
 import TestLibrary
 import Data.List
+import Data.Int
 
 main :: IO ()
 main =
   putStr $
   intercalate
     "\n"
-    [ show $ modifyArray [1 .. 10]
+    [ "haskell"
+    , showLang libraryLanguage
+    , show $ modifyArray [1 .. 10]
     --, invertStringCase "This IS a teST string"
     , show $ fmap (exponentiate 2) [1 .. 10]
     , show $ identity [1..10]
@@ -17,3 +20,6 @@ main =
     --, show $ applyFunction (*10) 5
     , ""
     ]
+
+showLang :: [Int32] -> String
+showLang = fmap (toEnum . fromIntegral)
