@@ -2,6 +2,11 @@
 #include "../app/serializers.c"
 #include "../libtenkei-c/ffi_wrappers.c"
 
+void tenkei_free(uint8_t *arg, size_t len)
+{
+  return;
+}
+
 cbor_item_t *cbor_library_language(cbor_item_t *args)
 {
   cbor_item_t **arg_list = cbor_array_handle(args);

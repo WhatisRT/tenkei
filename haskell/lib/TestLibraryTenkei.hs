@@ -7,41 +7,46 @@ import Foreign.C
 
 import Data.CBOR
 import FFIWrappers
+import System.IO.Unsafe
 import Pointers
 import Tenkei
-import TestLibrary
 
-tenkei_free :: Ptr Word8 -> CSize -> IO ()
-tenkei_free = tenkeiFree
-foreign export ccall tenkei_free :: Ptr Word8 -> CSize -> IO ()
+foreign import ccall "tenkei_free" tenkei_free :: Ptr Word8 -> CSize -> IO ()
 
-tenkei_library_language :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
-tenkei_library_language = offerCBOR (\(CBOR_Array []) -> serialize $ libraryLanguage )
-foreign export ccall tenkei_library_language :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
+foreign import ccall "tenkei_library_language" foreign_tenkei_library_language :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
+libraryLanguage :: [Int32]
+libraryLanguage  = unsafePerformIO $ do
+  return $ deserialize $ callCBOR foreign_tenkei_library_language tenkei_free $ CBOR_Array []
 
-tenkei_modify_array :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
-tenkei_modify_array = offerCBOR (\(CBOR_Array [arg1]) -> serialize $ modifyArray (deserialize arg1))
-foreign export ccall tenkei_modify_array :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
+foreign import ccall "tenkei_modify_array" foreign_tenkei_modify_array :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
+modifyArray :: [Int32] -> [Int32]
+modifyArray arg1 = unsafePerformIO $ do
+  let arg1' = arg1
+  return $ deserialize $ callCBOR foreign_tenkei_modify_array tenkei_free $ CBOR_Array [serialize arg1']
 
-tenkei_exponentiate :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
-tenkei_exponentiate = offerCBOR (\(CBOR_Array [arg1, arg2]) -> serialize $ exponentiate (deserialize arg1) (deserialize arg2))
-foreign export ccall tenkei_exponentiate :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
+foreign import ccall "tenkei_exponentiate" foreign_tenkei_exponentiate :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
+exponentiate :: Int32 -> Int32 -> Int32
+exponentiate arg1 arg2 = unsafePerformIO $ do
+  let arg1' = arg1
+  let arg2' = arg2
+  return $ deserialize $ callCBOR foreign_tenkei_exponentiate tenkei_free $ CBOR_Array [serialize arg1', serialize arg2']
 
-tenkei_identity_helper :: TenkeiPtr -> TenkeiPtr
-tenkei_identity_helper = identity
-tenkei_identity :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
-tenkei_identity = offerCBOR (\(CBOR_Array [arg1]) -> serialize $ tenkei_identity_helper (deserialize arg1))
-foreign export ccall tenkei_identity :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
+foreign import ccall "tenkei_identity" foreign_tenkei_identity :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
+identity :: a -> a
+identity arg1 = unsafePerformIO $ do
+  arg1' <- toPointer arg1
+  fromPointer $ deserialize $ callCBOR foreign_tenkei_identity tenkei_free $ CBOR_Array [serialize arg1']
 
-tenkei_choose_left_helper :: TenkeiPtr -> TenkeiPtr -> TenkeiPtr
-tenkei_choose_left_helper = chooseLeft
-tenkei_choose_left :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
-tenkei_choose_left = offerCBOR (\(CBOR_Array [arg1, arg2]) -> serialize $ tenkei_choose_left_helper (deserialize arg1) (deserialize arg2))
-foreign export ccall tenkei_choose_left :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
+foreign import ccall "tenkei_choose_left" foreign_tenkei_choose_left :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
+chooseLeft :: a -> b -> a
+chooseLeft arg1 arg2 = unsafePerformIO $ do
+  arg1' <- toPointer arg1
+  arg2' <- toPointer arg2
+  fromPointer $ deserialize $ callCBOR foreign_tenkei_choose_left tenkei_free $ CBOR_Array [serialize arg1', serialize arg2']
 
-tenkei_reverse_list_helper :: [TenkeiPtr] -> [TenkeiPtr]
-tenkei_reverse_list_helper = reverseList
-tenkei_reverse_list :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
-tenkei_reverse_list = offerCBOR (\(CBOR_Array [arg1]) -> serialize $ tenkei_reverse_list_helper (deserialize arg1))
-foreign export ccall tenkei_reverse_list :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
+foreign import ccall "tenkei_reverse_list" foreign_tenkei_reverse_list :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
+reverseList :: [a] -> [a]
+reverseList arg1 = unsafePerformIO $ do
+  arg1' <- toPointer arg1
+  fromPointer $ deserialize $ callCBOR foreign_tenkei_reverse_list tenkei_free $ CBOR_Array [serialize arg1']
 

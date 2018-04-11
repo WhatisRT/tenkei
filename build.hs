@@ -72,8 +72,8 @@ getLang2 = do
 build :: String -> String -> ErrorIO String
 build lang1 lang2 = do
   _ <- executeProcesses (lang2 ++ "/lib")
-  _ <- executeProcesses (lang1 ++ "/app")
   _ <- liftIO $ callCommand ("cp " ++ lang2 ++ "/lib/libtest-library.dylib tenkei-build/")
+  _ <- executeProcesses (lang1 ++ "/app")
   _ <- liftIO $ callCommand ("cp " ++ lang1 ++ "/app/test-exe tenkei-build/")
   return "Build successful!"
 

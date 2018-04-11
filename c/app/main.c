@@ -64,7 +64,7 @@ int32_t exp_2(int32_t e)
 
 int main(int argc, char *argv[])
 {
-  //hs_init(&argc, &argv);
+  hs_init(&argc, &argv);
 
   printf("c\n");
 
@@ -99,5 +99,5 @@ int main(int argc, char *argv[])
 
   fflush(stdout);
 
-  //hs_exit();
+  hs_exit();
 }

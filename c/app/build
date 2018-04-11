@@ -1,4 +1,4 @@
 rm CMakeCache.txt
-cmake -DC_LIB=true .
+cmake -DHASKELL_LIB=true -DHASKELL_PATH='/Library/Frameworks/GHC.framework/Versions/Current/usr/lib/ghc-8.2.2' .
 make
 mv test test-exe

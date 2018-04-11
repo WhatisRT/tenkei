@@ -16,7 +16,6 @@ description:         Please see the README on Github at <https://github.com/gith
 
 dependencies:
 - base >= 4.7 && < 5
-- tenkei-haskell
 - CBOR
 - generics-sop
 - binary
@@ -38,9 +37,5 @@ executables:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
-    dependencies:
-    - haskell-test-lib
-    extra-lib-dirs:
-    - ../c/lib
-    extra-libraries:
-    - test-library
+    - -ltest-library
+    - -L../tenkei-build
