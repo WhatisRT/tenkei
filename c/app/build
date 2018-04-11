@@ -1,0 +1,4 @@
+rm CMakeCache.txt
+cmake -DC_LIB=true .
+make
+mv test test-exe

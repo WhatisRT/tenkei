@@ -24,8 +24,8 @@ dependencies:
 
 library:
   source-dirs:
-  - src
-  - ../tenkei-haskell/src
+  - lib
+  - libtenkei-haskell/src
   ghc-options:
 
 executables:
@@ -33,7 +33,7 @@ executables:
     main:                Main.hs
     source-dirs:
     - app
-    - ../tenkei-haskell/src
+    - libtenkei-haskell/src
     ghc-options:
     - -threaded
     - -rtsopts

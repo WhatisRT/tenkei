@@ -1,0 +1,2 @@
+stack build
+cp ../.stack-work/install/x86_64-osx/lts-11.2/8.2.2/bin/haskell-test-lib-exe ./test-exe

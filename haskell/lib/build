@@ -1,0 +1,2 @@
+stack build
+cp ../.stack-work/dist/x86_64-osx/Cabal-2.0.1.0/build/libHShaskell-test-lib-0.1.0.0-CDH7byAS1KYDcQR3ppvNrO-ghc8.2.2.dylib libtest-library.dylib
