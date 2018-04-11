@@ -18,7 +18,6 @@ cbor_item_t *call_cbor(void (*f)(uint8_t *, size_t, uint8_t **, size_t *), cbor_
   cbor_item_t *result_cbor = cbor_load(res, res_len, &result);
 
   free(input);
-  free(res);
 
   return result_cbor;
 }

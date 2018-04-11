@@ -1,6 +1,5 @@
 a.out
 bin
 include
-lib
 my_plugin.c
 pip-selfcheck.json

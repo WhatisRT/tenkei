@@ -7,14 +7,14 @@ def read_file(filename):
 def main():
     ffibuilder = cffi.FFI()
     ffibuilder.embedding_api("""
-        void tenkei_modify_array(
+        void tenkei_library_language(
             uint8_t *input,
             size_t input_len,
             uint8_t **output,
             size_t *output_len
         );
         
-        void tenkei_invert_string_case(
+        void tenkei_modify_array(
             uint8_t *input,
             size_t input_len,
             uint8_t **output,
@@ -49,20 +49,13 @@ def main():
             size_t *output_len
         );
         
-        void tenkei_apply_function(
-            uint8_t *input,
-            size_t input_len,
-            uint8_t **output,
-            size_t *output_len
-        );
-        
         void tenkei_free(
             uint8_t *buffer,
             size_t buffer_len
         );
     """)
     ffibuilder.set_source("my_plugin", "")
-    ffibuilder.embedding_init_code(read_file("ffi_wrappers.py") + "\n\n" +
+    ffibuilder.embedding_init_code(read_file("../libtenkei-python/ffi_wrappers.py") + "\n\n" +
                                    """
 from collections import Counter
 
@@ -75,12 +68,12 @@ def tenkei_free(buffer, buffer_len):
         del DONT_FORGET[buffer]
 
 @ffi.def_extern()
-def tenkei_modify_array(*args):
-    return offer(modify_array)(*args)
+def tenkei_library_language(*args):
+    return offer(library_language)(*args)
 
 @ffi.def_extern()
-def tenkei_invert_string_case(*args):
-    return offer(invert_string_case)(*args)
+def tenkei_modify_array(*args):
+    return offer(modify_array)(*args)
 
 @ffi.def_extern()
 def tenkei_exponentiate(*args):
@@ -98,13 +91,9 @@ def tenkei_choose_left(*args):
 def tenkei_reverse_list(*args):
     return offer(reverse_list)(*args)
 
-@ffi.def_extern()
-def tenkei_apply_function(*args):
-    return offer(apply_function)(*args)
-
 """ +
-                                   read_file("test_library.py"))
-    ffibuilder.compile(target="libmy_plugin.*")
+                                   read_file("test-library.py"))
+    ffibuilder.compile(target="libtest-library.*")
 
 if __name__ == '__main__':
     main()

@@ -17,6 +17,6 @@ if(HASKELL_LIB)
 	find_library(HSINT_GMP HSinteger-gmp-1.0.1.0-ghc8.2.2 HINTS ${HASKELL_PATH}/integer-gmp-1.0.1.0)
 
 	target_link_libraries(test cbor ffi iconv ${HSRTS} ${HSGHC} ${HSBASE} ${HSINT_GMP} ${TEST})
-elseif(C_LIB)
+else()
   target_link_libraries(test cbor ${TEST})
 endif()
