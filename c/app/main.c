@@ -64,7 +64,9 @@ int32_t exp_2(int32_t e)
 
 int main(int argc, char *argv[])
 {
+#ifdef HASKELL_LIBRARY
   hs_init(&argc, &argv);
+#endif
 
   printf("c\n");
 
@@ -99,5 +101,7 @@ int main(int argc, char *argv[])
 
   fflush(stdout);
 
+#ifdef HASKELL_LIBRARY
   hs_exit();
+#endif
 }

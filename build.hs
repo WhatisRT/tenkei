@@ -1,4 +1,4 @@
-import Data.Bifunctor
+import Data.Char
 import Data.List
 import Data.Maybe
 
@@ -10,9 +10,6 @@ import Control.Monad.Except
 
 type ErrorIO = ExceptT String IO
 
-customError :: IO a -> (IOError -> String) -> ErrorIO a
-customError io f = ExceptT $ first f <$> tryIOError io
-
 fromJustError :: Maybe a -> String -> ErrorIO a
 fromJustError (Just x) _ = return x
 fromJustError _ x = throwError x
@@ -20,8 +17,13 @@ fromJustError _ x = throwError x
 (!!?) :: [a] -> Int -> Maybe a
 (!!?) l n = listToMaybe $ drop n l
 
+fillRight :: String -> Int -> String
+fillRight s i
+  | length s < i = fillRight (s ++ " ") i
+  | otherwise = s
+
 processInDir :: String -> String -> IO String
-processInDir dir cmd = readCreateProcess (CreateProcess (ShellCommand cmd) (Just dir) Nothing Inherit Inherit Inherit False False False False False False Nothing Nothing False) ""
+processInDir dir cmd = putStrLn ("\nDir: " ++ dir ++ "\n" ++ cmd ++ "\n") >> readCreateProcess (CreateProcess (ShellCommand cmd) (Just dir) Nothing Inherit Inherit Inherit False False False False False False Nothing Nothing False) ""
 
 languageList :: [String]
 languageList = ["c", "haskell"]
@@ -45,14 +47,20 @@ main = do
 
 performTest :: String -> String -> IO String
 performTest lang1 lang2 = do
-  result <- processInDir "tenkei-build" "env LD_LIBRARY_PATH=. ./test-exe"
+  result <- catchIOError (processInDir "tenkei-build" "env LD_LIBRARY_PATH=. ./test-exe") (\_ -> return "")
   comp <- readFile "tenkei-build/spec"
-  let resString = lang1 ++ ", " ++ lang2 ++ ": " ++
-        if result == comp
+  let resString =
+        fill lang1 ++
+        ", " ++
+        fill lang2 ++
+        ": " ++
+        if result == lang1 ++ "\n" ++ lang2 ++ "\n" ++ comp
           then "Success!"
-          else "Test not successful!"
+          else "Failure!"
   putStrLn resString
   return resString
+  where
+    fill s = fillRight s $ maximum $ fmap length languageList
 
 getTestFlag :: ErrorIO Bool
 getTestFlag = do
@@ -71,16 +79,32 @@ getLang2 = do
 
 build :: String -> String -> ErrorIO String
 build lang1 lang2 = do
-  _ <- executeProcesses (lang2 ++ "/lib")
+  _ <- executeProcesses (lang2 ++ "/lib") subst
   _ <- liftIO $ callCommand ("cp " ++ lang2 ++ "/lib/libtest-library.dylib tenkei-build/")
-  _ <- executeProcesses (lang1 ++ "/app")
+  _ <- executeProcesses (lang1 ++ "/app") subst
   _ <- liftIO $ callCommand ("cp " ++ lang1 ++ "/app/test-exe tenkei-build/")
   return "Build successful!"
+  where
+    subst = substitutions ++ [("LIB_LANG", fmap toUpper lang2)]
 
-executeProcesses :: String -> ErrorIO String
-executeProcesses dir = liftIO $ do
-  cmds <- fmap lines $ readFile $ dir ++ "/build"
-  unlines <$> traverse (processInDir dir) cmds
+substitutions :: [(String, String)]
+substitutions = [("HASKELL_PATH", "/Library/Frameworks/GHC.framework/Versions/Current/usr/lib/ghc-8.2.2")]
+
+substituteVar :: String -> (String, String) -> String
+substituteVar cmd@(x:xs) (var, subst) =
+  case stripPrefix ("${" ++ var ++ "}") cmd of
+    Just s -> subst ++ s
+    Nothing -> x : substituteVar xs (var, subst)
+substituteVar [] _ = []
+
+substituteVars :: [(String, String)] -> String -> String
+substituteVars subst cmd = foldl substituteVar cmd subst
+
+executeProcesses :: String -> [(String, String)] -> ErrorIO String
+executeProcesses dir subst =
+  liftIO $ do
+    cmds <- fmap lines $ readFile $ dir ++ "/build"
+    unlines <$> traverse (processInDir dir . substituteVars subst) cmds
 
 help :: IO ()
 help =

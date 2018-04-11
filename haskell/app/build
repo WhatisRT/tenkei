@@ -1,2 +1,3 @@
+stack clean
 stack build
-cp ../.stack-work/install/x86_64-osx/lts-11.2/8.2.2/bin/haskell-test-lib-exe ./test-exe
+cp `find ../.stack-work/dist -name 'haskell-test-lib-exe' -type f -print -quit` test-exe
