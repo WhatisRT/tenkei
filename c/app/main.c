@@ -7,19 +7,10 @@ void print_list(const struct list_int32_t l)
 {
   printf("[");
   for(int i = 0; i < l.length-1; i++)
-    printf("%d, ", l.start[i]);
+    printf("%d,", l.start[i]);
 
   printf("%d]\n", l.start[l.length-1]);
 
-  fflush(stdout);
-}
-
-void print_list_char(const struct list_char l)
-{
-  for(int i = 0; i < l.length-1; i++)
-    printf("%c", l.start[i]);
-
-  printf("\n");
   fflush(stdout);
 }
 
@@ -47,6 +38,22 @@ struct list_int32_t list_tenkei_ptr_to_list_int32_t(const struct list_tenkei_ptr
   return res;
 }
 
+struct list_int32_t map_int32_t(int32_t (*f)(int32_t), const struct list_int32_t l)
+{
+  int32_t *list_ = malloc(sizeof(int32_t) * l.length);
+
+  for(int i = 0; i < l.length; i++)
+    list_[i] = f(l.start[i]);
+
+  struct list_int32_t res = {list_, l.length};
+  return res;
+}
+
+int32_t exp_2(int32_t e)
+{
+  return exponentiate(2,e);
+}
+
 int main(int argc, char *argv[])
 {
   //hs_init(&argc, &argv);
@@ -58,7 +65,7 @@ int main(int argc, char *argv[])
 
   print_list(res);
 
-  printf("%d\n", exponentiate(2,5));
+  print_list(map_int32_t(exp_2, list));
 
   void *ptr_list = &list;
 
