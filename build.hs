@@ -26,7 +26,7 @@ processInDir :: String -> String -> IO String
 processInDir dir cmd = putStrLn ("\nDir: " ++ dir ++ "\n" ++ cmd ++ "\n") >> readCreateProcess (CreateProcess (ShellCommand cmd) (Just dir) Nothing Inherit Inherit Inherit False False False False False False Nothing Nothing False) ""
 
 languageList :: [String]
-languageList = ["c", "haskell"]
+languageList = ["c", "haskell", "python"]
 
 main :: IO ()
 main = do

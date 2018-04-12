@@ -115,7 +115,7 @@ funDefToLibImport (FunDef name _ _) =
   ["extern void " ++ foreignFunctionId name ++ "(uint8_t *input, size_t input_len, uint8_t **output, size_t *output_len);"]
 
 funDefToImport :: FunDef -> [String]
-funDefToImport f@(FunDef name sources target) =
+funDefToImport (FunDef name sources target) =
   [ typeToC target ++
     " " ++ functionId name ++ "(" ++ intercalate ", " (fmap variableToC sources) ++ ")"
   , "{"
