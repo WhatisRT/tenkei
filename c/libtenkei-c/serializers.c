@@ -7,7 +7,7 @@ cbor_item_t *serialize_int32_t(const int32_t i)
 
 int32_t deserialize_int32_t(const cbor_item_t *cbor)
 {
-  return cbor_get_uint32(cbor);
+  return (int32_t)cbor_get_int(cbor);
 }
 
 cbor_item_t *serialize_tenkei_ptr(const void *i)
