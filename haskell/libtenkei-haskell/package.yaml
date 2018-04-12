@@ -26,7 +26,6 @@ dependencies:
 
 library:
   source-dirs: src
-  ghc-options:
 
 tests:
   tenkei-haskell-test:

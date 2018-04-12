@@ -1,3 +1,4 @@
+#!/bin/sh
 stack build
-cp `find ../.stack-work/dist -name 'libHShaskell-test-lib*.dylib'` libtest-library.dylib
+cp "$(find ../.stack-work/dist -name 'libHShaskell-test-lib*.dylib')" libtest-library.dylib
 install_name_tool -id libtest-library.dylib libtest-library.dylib

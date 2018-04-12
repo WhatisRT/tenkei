@@ -3,7 +3,7 @@ import Data.List
 import Data.Maybe
 
 import System.Environment
-import System.Process
+import System.Process hiding (runProcess)
 import System.IO.Error
 
 import Control.Monad.Except
@@ -22,8 +22,21 @@ fillRight s i
   | length s < i = fillRight (s ++ " ") i
   | otherwise = s
 
-processInDir :: String -> String -> IO String
-processInDir dir cmd = putStrLn ("\nDir: " ++ dir ++ "\n" ++ cmd ++ "\n") >> readCreateProcess (CreateProcess (ShellCommand cmd) (Just dir) Nothing Inherit Inherit Inherit False False False False False False Nothing Nothing False) ""
+getCreateProcess :: String -> [(String, String)] -> String -> IO CreateProcess
+getCreateProcess dir extraEnv cmd = do
+  env <- getEnvironment
+  return (CreateProcess (RawCommand cmd []) (Just dir) (Just (env ++ extraEnv)) Inherit Inherit Inherit False False False False False False Nothing Nothing False )
+
+runProcess :: String -> [(String, String)] -> String -> IO ()
+runProcess dir extraEnv cmd = do
+  cp <- getCreateProcess dir extraEnv cmd
+  _ <- withCreateProcess cp (\_ _ _ p -> waitForProcess p)
+  return ()
+
+getProcessOutput :: String -> [(String, String)] -> String -> IO String
+getProcessOutput dir extraEnv cmd = do
+  cp <- getCreateProcess dir extraEnv cmd
+  readCreateProcess cp ""
 
 languageList :: [String]
 languageList = ["c", "haskell", "python"]
@@ -47,7 +60,7 @@ main = do
 
 performTest :: String -> String -> IO String
 performTest lang1 lang2 = do
-  result <- catchIOError (processInDir "tenkei-build" "env LD_LIBRARY_PATH=. ./test-exe") (\_ -> return "")
+  result <- catchIOError (getProcessOutput "tenkei-build" [("LD_LIBRARY_PATH", ".")] "./test-exe") (\_ -> return "")
   comp <- readFile "tenkei-build/spec"
   let resString =
         fill lang1 ++
@@ -100,11 +113,8 @@ substituteVar [] _ = []
 substituteVars :: [(String, String)] -> String -> String
 substituteVars subst cmd = foldl substituteVar cmd subst
 
-executeProcesses :: String -> [(String, String)] -> ErrorIO String
-executeProcesses dir subst =
-  liftIO $ do
-    cmds <- fmap lines $ readFile $ dir ++ "/build"
-    unlines <$> traverse (processInDir dir . substituteVars subst) cmds
+executeProcesses :: String -> [(String, String)] -> ErrorIO ()
+executeProcesses dir subst = liftIO $ runProcess dir subst "./build"
 
 help :: IO ()
 help =

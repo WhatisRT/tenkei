@@ -1,4 +1,5 @@
-rm CMakeCache.txt
-cmake -D${LIB_LANG}_LIB=true -DHASKELL_PATH='${HASKELL_PATH}' .
-make
+#!/bin/sh
+rm -f CMakeCache.txt
+cmake -D"${LIB_LANG}"_LIB=true -DHASKELL_PATH="${HASKELL_PATH}" .
+cmake --build .
 mv test test-exe

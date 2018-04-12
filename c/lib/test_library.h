@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include <stdlib.h>
 
 struct list_int32_t {
@@ -11,7 +12,7 @@ struct list_char {
 };
 
 struct list_tenkei_ptr {
-  void * *start;
+  void **start;
   unsigned int length;
 };
 

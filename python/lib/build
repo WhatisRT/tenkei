@@ -1,1 +1,2 @@
-python test-library-tenkei.py
+#!/bin/sh
+python3 test-library-tenkei.py

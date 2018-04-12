@@ -11,7 +11,7 @@ struct list_char {
 };
 
 struct list_tenkei_ptr {
-  void * *start;
+  void **start;
   unsigned int length;
 };
 

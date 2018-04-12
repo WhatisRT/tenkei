@@ -1,3 +1,4 @@
+#!/bin/sh
 stack clean
 stack build
-cp `find ../.stack-work/dist -name 'haskell-test-lib-exe' -type f -print -quit` test-exe
+cp "$(find ../.stack-work/dist -name 'haskell-test-lib-exe' -type f -print -quit)" test-exe
