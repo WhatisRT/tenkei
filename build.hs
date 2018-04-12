@@ -25,7 +25,7 @@ fillRight s i
 getCreateProcess :: String -> [(String, String)] -> String -> IO CreateProcess
 getCreateProcess dir extraEnv cmd = do
   env <- getEnvironment
-  return (CreateProcess (RawCommand cmd []) (Just dir) (Just (env ++ extraEnv)) Inherit Inherit Inherit False False False False False False Nothing Nothing False )
+  return (CreateProcess (ShellCommand cmd) (Just dir) (Just (env ++ extraEnv)) Inherit Inherit Inherit False False False False False False Nothing Nothing False )
 
 runProcess :: String -> [(String, String)] -> String -> IO ()
 runProcess dir extraEnv cmd = do
