@@ -3,3 +3,4 @@ bin
 include
 my_plugin.c
 pip-selfcheck.json
+_*
