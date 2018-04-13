@@ -1,5 +1,5 @@
 import cbor2
-from my_plugin import ffi
+from _example import ffi
 
 def offer(f):
     def offered(input, input_len, output, output_len):
@@ -16,6 +16,6 @@ def call(f):
         result_ptr = ffi.new("uint8_t **")
         result_len = ffi.new("size_t *")
         f(ffi.from_buffer(args_bin), len(args_bin), result_ptr, result_len)
-        result = cbor2.loads(bytes(ffi.buffer(result_ptr, result_len)))
+        result = cbor2.loads(bytes(ffi.buffer(result_ptr[0], result_len[0])))
         return result
     return called
