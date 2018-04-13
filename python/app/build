@@ -1,2 +1,3 @@
 #!/bin/sh
-touch test-exe
+python3 main.py
+cp test-exe-template test-exe

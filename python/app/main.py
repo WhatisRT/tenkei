@@ -5,7 +5,7 @@ ffibuilder.set_source("_example",
    r"""
     """,
                       libraries=['test-library'],
-                      library_dirs=['.'])
+                      library_dirs=['../../tenkei-build'])
                       #library_dirs=['./', '/Library/Frameworks/GHC.framework/Versions/Current/usr/lib/ghc-8.2.2/rts/'],
                       #extra_compile_args=['-arch x86_64', '-Wl,-rpath=/Library/Frameworks/GHC.framework/Versions/Current/usr/lib/ghc-8.2.2/rts/'])
 

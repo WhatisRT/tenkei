@@ -1,0 +1,2 @@
+#!/bin/sh
+python3 ../python/app/main_test.py
