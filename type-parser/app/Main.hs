@@ -38,7 +38,7 @@ languages :: [(String, (String -> Maybe DefFile, DefFile -> String, DefFile -> S
 languages =
   [ ("c", (undefined, generateCLib, generateCInterface))
   , ("haskell", (parseHaskell, generateHaskellLib, generateHaskellInterface))
-  , ("python", (undefined, undefined, generatePythonInterface))
+  , ("python", (undefined, generatePythonLib, generatePythonInterface))
   , ("rust", (parseRust, createRustFile, error "Rust tenkei library generation not yet supported!"))
   ]
 

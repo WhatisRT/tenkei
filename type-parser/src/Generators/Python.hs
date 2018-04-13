@@ -1,12 +1,10 @@
 module Generators.Python
   ( generatePythonInterface
+  , generatePythonLib
   ) where
 
 import Generators.General
 import Types
-
-libHeader :: [String]
-libHeader = []
 
 interfaceHeader :: [String]
 interfaceHeader =
@@ -61,6 +59,25 @@ generatePythonInterface' (DefFile libName funDefs _) =
   indent 35 ["read_file(\"test_library.py\"))"] ++
   ["    ffibuilder.compile(target=\"libmy_plugin.*\")", "", "if __name__ == '__main__':", "    main()"]
 
+generatePythonLib :: DefFile -> String
+generatePythonLib = unlines . generatePythonLib'
+
+generatePythonLib' :: DefFile -> [String]
+generatePythonLib' (DefFile _ funDefs _) =
+  [ "from cffi import FFI"
+  , "ffibuilder = FFI()"
+  , ""
+  , "ffibuilder.set_source(\"_example\","
+  , "   r\"\"\""
+  , "    \"\"\","
+  , "                      libraries=['test-library'],"
+  , "                      library_dirs=['.'])"
+  , "                      #library_dirs=['./', '/Library/Frameworks/GHC.framework/Versions/Current/usr/lib/ghc-8.2.2/rts/'],"
+  , "                      #extra_compile_args=['-arch x86_64', '-Wl,-rpath=/Library/Frameworks/GHC.framework/Versions/Current/usr/lib/ghc-8.2.2/rts/'])"
+  , ""
+  , "ffibuilder.cdef(\"\"\""
+  ] ++
+  (funDefs >>= funDefToExportC) ++ ["\"\"\")", "", "if __name__ == \"__main__\":", "    ffibuilder.compile(verbose=True)"]
 
 funDefToExportC :: FunDef -> [String]
 funDefToExportC (FunDef name _ _) = indent 8
