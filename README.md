@@ -22,9 +22,15 @@ uint64   | 0           | 0-27                   |
 float16  | 7           | 25                     |
 float32  | 7           | 26                     |
 float64  | 7           | 27                     |
-codepoint_unicode | ?  | ?                      | Not implemented
+bigint   | 6           | 2                      | Followed by bytestring
+bytestring | 2         | 0-31                   |
+codepoint_unicode | 0  | 0-26                   |
 string_utf8 | 3        | 0-27                   |
 list     | 4           | 0-31                   |
+
+### Automatic conversions
+
+The types string_utf8 and list(codepoint_unicode) will be automatically converted to eachother when passed as function arguments. This means 
 
 ## Composite types
 * Sums: A_1 + ... + A_n is encoded as a 2-element list: the first element is some index i, the second element is the serialized value of some element of type A_i
@@ -49,9 +55,9 @@ Let S and T be two types with a type variable and A be a type without a type var
 Tenkei functions can accept function pointers (but the type of these function pointers must not contain type variables for the time being, see issue #2). These are passed around just like regular pointers. These functions must have the same (C) signature as other tenkei functions. Note: there is currently no mechanism to pass the correct free function required with function pointers.
 
 ## Next version of the specification
-* Decide how to implement the primitives unit and codepoint_unicode
-* Add primitives: bigint? bytestring?
+* Decide how to implement the primitives unit 
 * Make arguments of the tenkei functions constant
 * Tenkei functions should return int instead of void, to communicate basic errors
 * Add a way of passing free functions together with function pointers
 * Function pointers with type variables
+* Bytestring type: use pointer and length instead of cbor serialization
