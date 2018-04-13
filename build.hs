@@ -103,16 +103,6 @@ build lang1 lang2 = do
 substitutions :: [(String, String)]
 substitutions = [("HASKELL_PATH", "/Library/Frameworks/GHC.framework/Versions/Current/usr/lib/ghc-8.2.2")]
 
-substituteVar :: String -> (String, String) -> String
-substituteVar cmd@(x:xs) (var, subst) =
-  case stripPrefix ("${" ++ var ++ "}") cmd of
-    Just s -> subst ++ s
-    Nothing -> x : substituteVar xs (var, subst)
-substituteVar [] _ = []
-
-substituteVars :: [(String, String)] -> String -> String
-substituteVars subst cmd = foldl substituteVar cmd subst
-
 executeProcesses :: String -> [(String, String)] -> ErrorIO ()
 executeProcesses dir subst = liftIO $ runProcess dir subst "./build"
 
