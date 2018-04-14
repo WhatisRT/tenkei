@@ -72,7 +72,7 @@ typeToC x = typeToC' x
 
 typeToC' :: Type -> String
 typeToC' (Unnamed (Primitive Unit)) = "()"
-typeToC' (Unnamed (Primitive Bool)) = "Bool"
+typeToC' (Unnamed (Primitive Bool)) = "bool"
 typeToC' (Unnamed (Primitive Int8)) = "int8_t"
 typeToC' (Unnamed (Primitive Int16)) = "int16_t"
 typeToC' (Unnamed (Primitive Int32)) = "int32_t"

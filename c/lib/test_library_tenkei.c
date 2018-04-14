@@ -20,6 +20,21 @@ void tenkei_library_language(uint8_t *input, size_t input_len, uint8_t **output,
   offer_cbor(cbor_library_language, input, input_len, output, output_len);
 }
 
+cbor_item_t *cbor_binary_or(cbor_item_t *args)
+{
+  cbor_item_t **arg_list = cbor_array_handle(args);
+  bool arg0 = deserialize_bool(arg_list[0]);
+  bool arg1 = deserialize_bool(arg_list[1]);
+  bool res = binary_or(arg0, arg1);
+  cbor_item_t *result = serialize_bool(res);
+  return result;
+};
+
+void tenkei_binary_or(uint8_t *input, size_t input_len, uint8_t **output, size_t *output_len)
+{
+  offer_cbor(cbor_binary_or, input, input_len, output, output_len);
+}
+
 cbor_item_t *cbor_modify_array(cbor_item_t *args)
 {
   cbor_item_t **arg_list = cbor_array_handle(args);

@@ -18,6 +18,13 @@ libraryLanguage :: [Int32]
 libraryLanguage  = unsafePerformIO $ do
   return $ deserialize $ callCBOR foreign_tenkei_library_language tenkei_free $ CBOR_Array []
 
+foreign import ccall "tenkei_binary_or" foreign_tenkei_binary_or :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
+binaryOr :: Bool -> Bool -> Bool
+binaryOr arg1 arg2 = unsafePerformIO $ do
+  let arg1' = arg1
+  let arg2' = arg2
+  return $ deserialize $ callCBOR foreign_tenkei_binary_or tenkei_free $ CBOR_Array [serialize arg1', serialize arg2']
+
 foreign import ccall "tenkei_modify_array" foreign_tenkei_modify_array :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
 modifyArray :: [Int32] -> [Int32]
 modifyArray arg1 = unsafePerformIO $ do

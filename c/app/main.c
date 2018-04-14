@@ -72,6 +72,8 @@ int main(int argc, char *argv[])
 
   print_list_char(library_language());
 
+  printf(binary_or(true, false) ? "True\n" : "False\n");
+
   int list_[] = {1,2,3,4,5,6,7,8,9,10};
   struct list_int32_t list = {list_, 10};
 

@@ -10,6 +10,7 @@ extern "C" {
 #endif
 
   extern void tenkei_library_language(uint8_t *input, size_t input_len, uint8_t **output, size_t *output_len);
+  extern void tenkei_binary_or(uint8_t *input, size_t input_len, uint8_t **output, size_t *output_len);
   extern void tenkei_modify_array(uint8_t *input, size_t input_len, uint8_t **output, size_t *output_len);
   extern void tenkei_exponentiate(uint8_t *input, size_t input_len, uint8_t **output, size_t *output_len);
   extern void tenkei_identity(uint8_t *input, size_t input_len, uint8_t **output, size_t *output_len);
@@ -36,6 +37,20 @@ struct list_int32_t library_language()
   cbor_item_t *args = cbor_new_definite_array(0);
   cbor_item_t *res = call_cbor(tenkei_library_language, args);
   struct list_int32_t result = deserialize_list_int32_t(res);
+  cbor_decref(&args);
+  cbor_decref(&res);
+  return result;
+}
+
+bool binary_or(bool param0, bool param1)
+{
+  cbor_item_t *args = cbor_new_definite_array(2);
+  cbor_item_t *arg1 = serialize_bool(param0);
+  cbor_array_push(args, arg1);
+  cbor_item_t *arg2 = serialize_bool(param1);
+  cbor_array_push(args, arg2);
+  cbor_item_t *res = call_cbor(tenkei_binary_or, args);
+  bool result = deserialize_bool(res);
   cbor_decref(&args);
   cbor_decref(&res);
   return result;

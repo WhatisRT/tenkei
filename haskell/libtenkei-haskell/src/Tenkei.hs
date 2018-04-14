@@ -23,6 +23,11 @@ class Tenkei a where
     CBOR -> a
   deserialize = to . deserializeS
 
+instance Tenkei Bool where
+  serialize = CBOR_UInt . fromIntegral . fromEnum
+  deserialize (CBOR_UInt i) = i == 1
+  deserialize _ = error "Error while interpreting CBOR: not a boolean"
+
 instance Tenkei Int32 where
   serialize i
     | i >= 0 = CBOR_UInt $ fromIntegral i

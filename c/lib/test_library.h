@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdbool.h>
 #include <stdlib.h>
 
 struct list_int32_t {
@@ -19,6 +20,8 @@ struct list_tenkei_ptr {
 void tenkei_free(uint8_t *, size_t);
 
 struct list_int32_t library_language();
+
+bool binary_or(bool, bool);
 
 struct list_int32_t modify_array(struct list_int32_t);
 

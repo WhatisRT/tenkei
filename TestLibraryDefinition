@@ -32,6 +32,51 @@
         },
         {
             "funName": [
+                "binary",
+                "or"
+            ],
+            "sources": [
+                [
+                    [
+                        "param0"
+                    ],
+                    {
+                        "tag": "Unnamed",
+                        "contents": {
+                            "tag": "Primitive",
+                            "contents": {
+                                "tag": "Bool"
+                            }
+                        }
+                    }
+                ],
+                [
+                    [
+                        "param1"
+                    ],
+                    {
+                        "tag": "Unnamed",
+                        "contents": {
+                            "tag": "Primitive",
+                            "contents": {
+                                "tag": "Bool"
+                            }
+                        }
+                    }
+                ]
+            ],
+            "target": {
+                "tag": "Unnamed",
+                "contents": {
+                    "tag": "Primitive",
+                    "contents": {
+                        "tag": "Bool"
+                    }
+                }
+            }
+        },
+        {
+            "funName": [
                 "modify",
                 "array"
             ],

@@ -1,5 +1,15 @@
 #include "cbor.h"
 
+cbor_item_t *serialize_bool(const bool i)
+{
+  return cbor_build_uint8(i);
+}
+
+bool deserialize_bool(const cbor_item_t *cbor)
+{
+  return (bool)cbor_get_int(cbor);
+}
+
 cbor_item_t *serialize_int32_t(const int32_t i)
 {
   return cbor_build_uint32(i);

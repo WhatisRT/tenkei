@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdbool.h>
 
 struct list_int32_t {
   int32_t *start;
@@ -22,6 +23,11 @@ struct list_int32_t library_language()
   list_[0] = 99;
 
   return res;
+}
+
+bool binary_or(bool a, bool b)
+{
+  return a || b;
 }
 
 struct list_int32_t modify_array(struct list_int32_t l)

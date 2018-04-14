@@ -67,7 +67,7 @@ generatePythonInterface' (DefFile _ funDefs _) =
   [ "from cffi import FFI"
   , "ffibuilder = FFI()"
   , ""
-  , "ffibuilder.set_source(\"_example\","
+  , "ffibuilder.set_source(\"my_plugin\","
   , "   r\"\"\""
   , "    \"\"\","
   , "                      libraries=['test-library'],"
