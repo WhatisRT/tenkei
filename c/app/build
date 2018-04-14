@@ -1,5 +1,5 @@
 #!/bin/sh
-rm -f CMakeCache.txt
-cmake -D"${LIB_LANG}"_LIB=true -DHASKELL_PATH="${HASKELL_PATH}" .
+if [ ! -e CMakeCache.txt ]; then
+	cmake .
+fi
 cmake --build .
-mv test test-exe

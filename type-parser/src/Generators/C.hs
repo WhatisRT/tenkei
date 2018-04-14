@@ -21,7 +21,7 @@ foreignFunctionId :: Identifier -> String
 foreignFunctionId = ("tenkei_" ++) . snakeCase
 
 indent :: Int -> [String] -> [String]
-indent = indentStr " "
+indent = indentStr "  "
 
 generateCLib :: DefFile -> String
 generateCLib = unlines . generateCLib'
@@ -43,9 +43,9 @@ generateCInterface' (DefFile libName funDefs typeDefs) =
   [ "#ifdef __cplusplus"
   , "extern \"C\" {"
   , "#endif"
-  , "  extern void tenkei_free(uint8_t *buffer, size_t buffer_len);"
-  , "  extern void hs_init(int* argc, char** argv[]);"
-  , "  extern void hs_exit();"
+  , "  void tenkei_free(uint8_t *buffer, size_t buffer_len);"
+  , "  void hs_init(int *argc, char **argv[]);"
+  , "  void hs_exit(void);"
   , ""
   ] ++
   indent 2 (funDefs >>= funDefToLibImport) ++
@@ -95,8 +95,7 @@ variableToC (name, t) = typeToC t ++ " " ++ variableId name
 funDefToExport :: FunDef -> [String]
 funDefToExport (FunDef name sources target) =
   ["cbor_item_t *cbor_" ++ functionId name ++ "(cbor_item_t *args)", "{"] ++
-  indent
-    2
+  indent 1
     (["cbor_item_t **arg_list = cbor_array_handle(args);"] ++
      zipWith deserializeArg [0 ..] (fmap snd sources) ++
      [ typeToC target ++ " res = " ++ functionId name ++ "(" ++ intercalate ", " argList ++ ");"
@@ -104,7 +103,7 @@ funDefToExport (FunDef name sources target) =
      , "return result;"
      ]) ++
   ["};", "", "void tenkei_" ++ functionId name ++ "(uint8_t *input, size_t input_len, uint8_t **output, size_t *output_len)", "{"] ++
-  indent 2 ["offer_cbor(cbor_" ++ functionId name ++ ", input, input_len, output, output_len);"] ++ ["}", ""]
+  indent 1 ["offer_cbor(cbor_" ++ functionId name ++ ", input, input_len, output, output_len);"] ++ ["}", ""]
   where
     argList = fmap (("arg" ++) . show) [0 .. length sources - 1]
     deserializeArg index argType =

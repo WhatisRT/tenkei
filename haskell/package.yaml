@@ -25,6 +25,8 @@ library:
   source-dirs:
   - lib
   - libtenkei-haskell/src
+  c-sources:
+    lib/haskell_init.c
   ghc-options: ""
 
 executables:

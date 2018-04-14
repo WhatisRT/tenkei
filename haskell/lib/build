@@ -1,4 +1,29 @@
-#!/bin/sh
+#!/bin/sh -e
+# If you're debugging, replace -e with -ex in the line above.
+
 stack build
-cp "$(find ../.stack-work/dist -name 'libHShaskell-test-lib*.dylib')" libtest-library.dylib
-install_name_tool -id libtest-library.dylib libtest-library.dylib
+ORIGINAL="$(find ../.stack-work/dist -name 'libHShaskell-test-lib*.*')"
+EXT="$(echo "${ORIGINAL}" | sed 's/^.*\.//')"
+LIB="libtest-library.${EXT}"
+
+cp "${ORIGINAL}" "${LIB}"
+patchelf --set-soname "${LIB}" "${LIB}"
+OLDIFS="${IFS}"
+IFS=:
+FOUND=no
+for dir in $(patchelf --print-rpath "${LIB}"); do
+	dir="$(dirname "${dir}")/rts"
+	if [ -d "${dir}" ]; then
+		if RTS_LIBRARIES="$(find "$(dirname "${dir}")/rts" -name 'libHSrts-ghc*.*.*.*')"; then
+			RTS_LIBRARY="$(echo "${RTS_LIBRARIES}" | head -n1)"
+			FOUND=yes
+			break
+		fi
+	fi
+done
+IFS="${OLDIFS}"
+if [ "${FOUND}" != yes ]; then
+	exit 1
+fi
+patchelf --set-rpath "$(dirname "${RTS_LIBRARY}"):$(patchelf --print-rpath "${LIB}")" "${LIB}"
+patchelf --add-needed "$(basename "${RTS_LIBRARY}")" "${LIB}"
