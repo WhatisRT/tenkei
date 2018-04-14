@@ -7,6 +7,31 @@
     "funDefs": [
         {
             "funName": [
+                "library",
+                "language"
+            ],
+            "sources": [],
+            "target": {
+                "tag": "Unnamed",
+                "contents": {
+                    "tag": "Primitive",
+                    "contents": {
+                        "tag": "List",
+                        "contents": {
+                            "tag": "Unnamed",
+                            "contents": {
+                                "tag": "Primitive",
+                                "contents": {
+                                    "tag": "Int32"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "funName": [
                 "modify",
                 "array"
             ],
@@ -47,56 +72,6 @@
                                 "tag": "Primitive",
                                 "contents": {
                                     "tag": "Int32"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        {
-            "funName": [
-                "invert",
-                "string",
-                "case"
-            ],
-            "sources": [
-                [
-                    [
-                        "param"
-                    ],
-                    {
-                        "tag": "Unnamed",
-                        "contents": {
-                            "tag": "Primitive",
-                            "contents": {
-                                "tag": "List",
-                                "contents": {
-                                    "tag": "Unnamed",
-                                    "contents": {
-                                        "tag": "Primitive",
-                                        "contents": {
-                                            "tag": "CodepointUnicode"
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                ]
-            ],
-            "target": {
-                "tag": "Unnamed",
-                "contents": {
-                    "tag": "Primitive",
-                    "contents": {
-                        "tag": "List",
-                        "contents": {
-                            "tag": "Unnamed",
-                            "contents": {
-                                "tag": "Primitive",
-                                "contents": {
-                                    "tag": "CodepointUnicode"
                                 }
                             }
                         }
@@ -268,78 +243,6 @@
                                 ]
                             }
                         }
-                    }
-                }
-            }
-        },
-        {
-            "funName": [
-                "apply",
-                "function"
-            ],
-            "sources": [
-                [
-                    [
-                        "param0"
-                    ],
-                    {
-                        "tag": "Unnamed",
-                        "contents": {
-                            "tag": "Primitive",
-                            "contents": {
-                                "tag": "Function",
-                                "contents": [
-                                    [
-                                        [
-                                            [
-                                                "param"
-                                            ],
-                                            {
-                                                "tag": "Unnamed",
-                                                "contents": {
-                                                    "tag": "Primitive",
-                                                    "contents": {
-                                                        "tag": "Int32"
-                                                    }
-                                                }
-                                            }
-                                        ]
-                                    ],
-                                    {
-                                        "tag": "Unnamed",
-                                        "contents": {
-                                            "tag": "Primitive",
-                                            "contents": {
-                                                "tag": "Int32"
-                                            }
-                                        }
-                                    }
-                                ]
-                            }
-                        }
-                    }
-                ],
-                [
-                    [
-                        "param1"
-                    ],
-                    {
-                        "tag": "Unnamed",
-                        "contents": {
-                            "tag": "Primitive",
-                            "contents": {
-                                "tag": "Int32"
-                            }
-                        }
-                    }
-                ]
-            ],
-            "target": {
-                "tag": "Unnamed",
-                "contents": {
-                    "tag": "Primitive",
-                    "contents": {
-                        "tag": "Int32"
                     }
                 }
             }
