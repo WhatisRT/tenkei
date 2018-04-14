@@ -1,5 +1,6 @@
 #!/bin/sh
 rm -f CMakeCache.txt
+type-parser interface c ../../TestLibraryDefinition test_library_tenkei.c
 cmake -D"${LIB_LANG}"_LIB=true -DHASKELL_PATH="${HASKELL_PATH}" .
 cmake --build .
 mv test test-exe

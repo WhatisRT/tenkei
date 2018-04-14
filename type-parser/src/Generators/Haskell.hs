@@ -1,4 +1,3 @@
-{-# OPTIONS_GHC -Wall -Wno-name-shadowing #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleContexts #-}
 
@@ -59,18 +58,18 @@ functionId = camelCase
 foreignFunctionId :: Identifier -> String
 foreignFunctionId = ("tenkei_" ++) . snakeCase
 
-generateHaskellLib :: DefFile -> String
-generateHaskellLib = unlines . generateHaskellLib'
-
-generateHaskellLib' :: DefFile -> [String]
-generateHaskellLib' (DefFile libName funDefs typeDefs) =
-  libHeader (pascalCase libName) ++ (funDefs >>= funDefToImport) ++ (typeDefs >>= typeDefToText)
-
 generateHaskellInterface :: DefFile -> String
 generateHaskellInterface = unlines . generateHaskellInterface'
 
 generateHaskellInterface' :: DefFile -> [String]
-generateHaskellInterface' (DefFile libName funDefs _) = interfaceHeader (pascalCase libName) ++ (funDefs >>= funDefToExport)
+generateHaskellInterface' (DefFile libName funDefs typeDefs) =
+  libHeader (pascalCase libName) ++ (funDefs >>= funDefToImport) ++ (typeDefs >>= typeDefToText)
+
+generateHaskellLib :: DefFile -> String
+generateHaskellLib = unlines . generateHaskellLib'
+
+generateHaskellLib' :: DefFile -> [String]
+generateHaskellLib' (DefFile libName funDefs _) = interfaceHeader (pascalCase libName) ++ (funDefs >>= funDefToExport)
 
 typeToHaskell :: Type -> String
 typeToHaskell (Unnamed (Primitive Unit)) = "()"
@@ -95,7 +94,7 @@ typeToHaskell (Unnamed (Any ident)) = snakeCase ident
 typeToHaskell (Named ident) = pascalCase ident
 
 typeToHaskell' :: Type -> String
-typeToHaskell' (Unnamed (Primitive (Function sources target))) = "TenkeiPtr"
+typeToHaskell' (Unnamed (Primitive (Function _ _))) = "TenkeiPtr"
 typeToHaskell' (Unnamed (Primitive (List t))) = mconcat ["[", typeToHaskell' t, "]"]
 typeToHaskell' (Unnamed (Any _)) = "TenkeiPtr"
 typeToHaskell' x = typeToHaskell x

@@ -33,13 +33,14 @@ library:
   source-dirs: src
 
 executables:
-  type-parser-exe:
+  type-parser:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
+    - -fno-warn-name-shadowing
     dependencies:
     - aeson
     - aeson-pretty

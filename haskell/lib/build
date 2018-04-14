@@ -1,4 +1,5 @@
 #!/bin/sh
+type-parser library haskell ../../TestLibraryDefinition TestLibraryTenkei.hs
 stack build
 cp "$(find ../.stack-work/dist -name 'libHShaskell-test-lib*.dylib')" libtest-library.dylib
 install_name_tool -id libtest-library.dylib libtest-library.dylib
