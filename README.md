@@ -1,40 +1,40 @@
 # Build instructions
 
-Compile build.hs (e.g. with stack ghc), and execute it with two parameters. The first parameter is the language of the executable, the second parameter the language of the library. Make sure the directory tenkei-build exists. To run the program, use env LD_LIBRARY_PATH=. ./test-exe in the tenkei-build directory.
+Compile build.hs (e.g. with `stack ghc`), and execute it with two parameters. The first parameter is the language of the executable, the second parameter the language of the library. Make sure the directory tenkei-build exists. To run the program, use `env LD_LIBRARY_PATH=. ./test-exe` in the tenkei-build directory.
 
 # Tenkei Specification
 
 All types are serialized using CBOR. See eg. wikipedia for details.
 
 ## Primitive types
-Type     | Major types | Additional information | Notes
----------|-------------|------------------------|-----------------------------
-unit     | ?           | ?                      | Not implemented
-bool     | 0           | 0/1                    | Additional information contains the value
-int8     | 0/1         | 0-24                   | Major type contains the sign
-int16    | 0/1         | 0-25                   | See above
-int32    | 0/1         | 0-26                   | See above
-int64    | 0/1         | 0-27                   | See above
-uint8    | 0           | 0-24                   |
-uint16   | 0           | 0-25                   |
-uint32   | 0           | 0-26                   |
-uint64   | 0           | 0-27                   |
-float16  | 7           | 25                     |
-float32  | 7           | 26                     |
-float64  | 7           | 27                     |
-bigint   | 6           | 2                      | Followed by bytestring
-bytestring | 2         | 0-31                   |
-codepoint_unicode | 0  | 0-26                   |
-string_utf8 | 3        | 0-27                   |
-list     | 4           | 0-31                   |
+Type                 | Major types | Additional information | Notes
+---------------------|-------------|------------------------|--------------------
+`unit`               | ?           | ?                      | Not implemented
+`bool`               | 0           | 0/1                    | Additional information contains the value
+`int8`               | 0/1         | 0-24                   | Major type contains the sign
+`int16`              | 0/1         | 0-25                   | See above
+`int32`              | 0/1         | 0-26                   | See above
+`int64`              | 0/1         | 0-27                   | See above
+`uint8`              | 0           | 0-24                   |
+`uint16`             | 0           | 0-25                   |
+`uint32`             | 0           | 0-26                   |
+`uint64`             | 0           | 0-27                   |
+`float16`            | 7           | 25                     |
+`float32`            | 7           | 26                     |
+`float64`            | 7           | 27                     |
+`bigint`             | 6           | 2                      | Followed by bytestring
+`bytestring`         | 2           | 0-31                   |
+`codepoint\_unicode` | 0           | 0-26                   |
+`string\_utf8`       | 3           | 0-27                   |
+`list`               | 4           | 0-31                   |
 
 ### Automatic conversions
 
-The types string_utf8 and list(codepoint_unicode) will be automatically converted to eachother when passed as function arguments. This means 
+The types `string_utf8` and `list(codepoint_unicode)` will be automatically converted to eachother when passed as function arguments.
 
 ## Composite types
-* Sums: A_1 + ... + A_n is encoded as a 2-element list: the first element is some index i, the second element is the serialized value of some element of type A_i
-* Products: A_1 x ... x A_n is encoded as an n-element list
+* Sums: A\_1 + ... + A\_n is encoded as a 2-element list: the first element is some index i, the second element is the serialized value of some element of type A\_i
+* Products: A\_1 x ... x A\_n is encoded as an n-element list
 
 ## Type variables
 Types may leave variables in their definition (the canonical example being list). There are two strategies for serializing such types:
@@ -55,7 +55,7 @@ Let S and T be two types with a type variable and A be a type without a type var
 Tenkei functions can accept function pointers (but the type of these function pointers must not contain type variables for the time being, see issue #2). These are passed around just like regular pointers. These functions must have the same (C) signature as other tenkei functions. Note: there is currently no mechanism to pass the correct free function required with function pointers.
 
 ## Next version of the specification
-* Decide how to implement the primitives unit 
+* Decide how to implement the primitive unit
 * Make arguments of the tenkei functions constant
 * Tenkei functions should return int instead of void, to communicate basic errors
 * Add a way of passing free functions together with function pointers
