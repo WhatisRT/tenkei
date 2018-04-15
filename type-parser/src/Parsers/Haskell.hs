@@ -56,7 +56,7 @@ moduleDef :: Parser (Identifier, Maybe [Identifier])
 moduleDef = do
   _ <- lexeme $ string "module"
   moduleName <- lexeme pascalCaseIdentifier
-  exports <- optional $ parens $ sepBy1 camelCaseIdentifier $ symbol ","
+  exports <- optional $ parens $ sepBy1 (lexeme camelCaseIdentifier) $ symbol ","
   _ <- lexeme $ string "where"
   eof
   return (moduleName, exports)
