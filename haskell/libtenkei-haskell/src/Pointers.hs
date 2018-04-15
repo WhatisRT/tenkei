@@ -13,3 +13,9 @@ instance Tenkei TenkeiPtr where
   serialize = CBOR_UInt . fromIntegral . (\(WordPtr x) -> x) . ptrToWordPtr . getPtr
   deserialize (CBOR_UInt i) = TenkeiPtr $ wordPtrToPtr $ WordPtr $ fromIntegral i
   deserialize x = error ("Error while interpreting CBOR: not a memory address:\n" ++ show x)
+
+newtype TenkeiValue = TenkeiValue { getValue :: CBOR }
+
+instance Tenkei TenkeiValue where
+  serialize = getValue
+  deserialize = TenkeiValue

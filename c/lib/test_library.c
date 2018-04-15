@@ -1,20 +1,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-struct list_int32_t {
-  int32_t *start;
-  unsigned int length;
-};
-
-struct list_char {
-  char *start;
-  unsigned int length;
-};
-
-struct list_tenkei_ptr {
-  void **start;
-  unsigned int length;
-};
+#include "../libtenkei-c/serializers.h"
+#include "../common/list_types.h"
 
 struct list_int32_t library_language()
 {
@@ -49,20 +37,20 @@ int32_t exponentiate(int32_t x, int32_t y)
   return acc;
 }
 
-void *identity(void *x)
+struct tenkei_value identity(struct tenkei_value x)
 {
   return x;
 }
 
-void *choose_left(void *l, void *r)
+struct tenkei_value choose_left(struct tenkei_value l, struct tenkei_value r)
 {
   return l;
 }
 
-struct list_tenkei_ptr reverse_list(struct list_tenkei_ptr l)
+struct list_tenkei_value reverse_list(struct list_tenkei_value l)
 {
-  void **list_ = malloc(sizeof(void *) * l.length);
-  struct list_tenkei_ptr res = {list_, l.length};
+  struct tenkei_value *list_ = malloc(sizeof(struct tenkei_value) * l.length);
+  struct list_tenkei_value res = {list_, l.length};
 
   for(int i = 0; i < l.length; i++)
     list_[i] = l.start[l.length - i - 1];

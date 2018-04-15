@@ -39,21 +39,21 @@ exponentiate arg1 arg2 = unsafePerformIO $ do
   return $ deserialize $ callCBOR foreign_tenkei_exponentiate tenkei_free $ CBOR_Array [serialize arg1', serialize arg2']
 
 foreign import ccall "tenkei_identity" foreign_tenkei_identity :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
-identity :: a -> a
+identity :: (Tenkei a) => a -> a
 identity arg1 = unsafePerformIO $ do
-  arg1' <- toPointer arg1
-  fromPointer $ deserialize $ callCBOR foreign_tenkei_identity tenkei_free $ CBOR_Array [serialize arg1']
+  let arg1' = arg1
+  return $ deserialize $ callCBOR foreign_tenkei_identity tenkei_free $ CBOR_Array [serialize arg1']
 
 foreign import ccall "tenkei_choose_left" foreign_tenkei_choose_left :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
-chooseLeft :: a -> b -> a
+chooseLeft :: (Tenkei a, Tenkei b) => a -> b -> a
 chooseLeft arg1 arg2 = unsafePerformIO $ do
-  arg1' <- toPointer arg1
-  arg2' <- toPointer arg2
-  fromPointer $ deserialize $ callCBOR foreign_tenkei_choose_left tenkei_free $ CBOR_Array [serialize arg1', serialize arg2']
+  let arg1' = arg1
+  let arg2' = arg2
+  return $ deserialize $ callCBOR foreign_tenkei_choose_left tenkei_free $ CBOR_Array [serialize arg1', serialize arg2']
 
 foreign import ccall "tenkei_reverse_list" foreign_tenkei_reverse_list :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
-reverseList :: [a] -> [a]
+reverseList :: (Tenkei a) => [a] -> [a]
 reverseList arg1 = unsafePerformIO $ do
-  arg1' <- toPointer arg1
-  fromPointer $ deserialize $ callCBOR foreign_tenkei_reverse_list tenkei_free $ CBOR_Array [serialize arg1']
+  let arg1' = arg1
+  return $ deserialize $ callCBOR foreign_tenkei_reverse_list tenkei_free $ CBOR_Array [serialize arg1']
 

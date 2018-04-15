@@ -1,7 +1,7 @@
 #include "cbor.h"
 #include <stdio.h>
 #include "test_library_tenkei.c"
-#include "serializers.c"
+#include "../common/list_serializers.h"
 
 void print_list(const struct list_int32_t l)
 {
@@ -22,24 +22,27 @@ void print_list_char(const struct list_int32_t l)
   printf("\n");
 }
 
-struct list_tenkei_ptr list_int32_t_to_list_tenkei_ptr(const struct list_int32_t l)
+struct list_tenkei_value list_int32_t_to_list_tenkei_value(const struct list_int32_t l)
 {
-  void **list_ = malloc(sizeof(void *) * l.length);
+  struct tenkei_value *list_ = malloc(sizeof(struct tenkei_value) * l.length);
 
   for(int i = 0; i < l.length; i++)
-    list_[i] = &l.start[i];
+  {
+    struct tenkei_value temp = {serialize_int32_t(l.start[i])};
+    list_[i] = temp;
+  }
 
-  struct list_tenkei_ptr res = {list_, l.length};
+  struct list_tenkei_value res = {list_, l.length};
 
   return res;
 }
 
-struct list_int32_t list_tenkei_ptr_to_list_int32_t(const struct list_tenkei_ptr l)
+struct list_int32_t list_tenkei_value_to_list_int32_t(const struct list_tenkei_value l)
 {
   int32_t *list_ = malloc(sizeof(int32_t) * l.length);
 
   for(int i = 0; i < l.length; i++)
-    list_[i] = (*(int32_t*)(l.start[i]));
+    list_[i] = (deserialize_int32_t(l.start[i].contents));
 
   struct list_int32_t res = {list_, l.length};
 
@@ -83,21 +86,21 @@ int main(int argc, char *argv[])
 
   print_list(map_int32_t(exp_2, list));
 
-  void *ptr_list = &list;
+  struct tenkei_value arg = {serialize_list_int32_t(list)};
 
-  struct list_int32_t *res3 = identity(ptr_list);
-  print_list(*res3);
+  struct list_int32_t res3 = deserialize_list_int32_t(identity(arg).contents);
+  print_list(res3);
 
-  int i1 = 1;
-  int i2 = 2;
+  struct tenkei_value i1 = {serialize_int32_t(1)};
+  struct tenkei_value i2 = {serialize_int32_t(2)};
 
-  printf("%d\n", *(int *)choose_left((void*)&i1, (void*)&i2));
+  printf("%d\n", deserialize_int32_t(choose_left(i1, i2).contents));
 
-  struct list_tenkei_ptr list3 = list_int32_t_to_list_tenkei_ptr(list);
+  struct list_tenkei_value list3 = list_int32_t_to_list_tenkei_value(list);
 
-  struct list_tenkei_ptr res4 = reverse_list(list3);
+  struct list_tenkei_value res4 = reverse_list(list3);
 
-  struct list_int32_t res5 = list_tenkei_ptr_to_list_int32_t(res4);
+  struct list_int32_t res5 = list_tenkei_value_to_list_int32_t(res4);
 
   print_list(res5);
 
