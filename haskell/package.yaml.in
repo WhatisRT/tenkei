@@ -1,9 +1,5 @@
 name:                haskell-test-lib
 version:             0.1.0.0
-github:              "githubuser/haskell-test-lib"
-author:              "Author name here"
-maintainer:          "example@example.com"
-copyright:           "2018 Author name here"
 
 # Metadata used when publishing your package
 # synopsis:            Short description of your package
@@ -25,7 +21,12 @@ library:
   source-dirs:
   - lib
   - libtenkei-haskell/src
-  ghc-options: ""
+  c-sources:
+  - lib/haskell_init.c
+  extra-lib-dirs:
+  - ${HSRTS_PATH}
+  extra-libraries:
+  - ${HSRTS_LIB}
 
 executables:
   haskell-test-lib-exe:
