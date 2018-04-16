@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -e
 stack clean
 type-parser interface haskell ../../TestLibraryDefinition TestLibrary.hs
 stack build
