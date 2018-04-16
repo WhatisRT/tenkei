@@ -33,6 +33,7 @@ executables:
     source-dirs:
     - app
     - libtenkei-haskell/src
+    dependencies: haskell-test-lib
     ghc-options:
     - -threaded
     - -rtsopts
