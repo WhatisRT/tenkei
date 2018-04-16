@@ -2,6 +2,7 @@
 #include <stdbool.h>
 
 #include "../libtenkei-c/serializers.h"
+//#include "../libtenkei-c/ffi_wrappers.h"
 #include "../common/list_types.h"
 
 struct list_int32_t library_language()
@@ -55,5 +56,13 @@ struct list_tenkei_value reverse_list(struct list_tenkei_value l)
   for(int i = 0; i < l.length; i++)
     list_[i] = l.start[l.length - i - 1];
 
+  return res;
+}
+
+struct tenkei_value apply_function(void (*f)(uint8_t *, size_t, uint8_t **, size_t *), struct tenkei_value x)
+{
+  cbor_item_t *arg = cbor_new_definite_array(1);
+  cbor_array_push(arg, x.contents);
+  struct tenkei_value res = {call_cbor(f, arg)};
   return res;
 }

@@ -59,6 +59,13 @@ ffibuilder.cdef("""
             size_t *output_len
         );
         
+        void tenkei_apply_function(
+            uint8_t *input,
+            size_t input_len,
+            uint8_t **output,
+            size_t *output_len
+        );
+        
 """)
 
 if __name__ == "__main__":

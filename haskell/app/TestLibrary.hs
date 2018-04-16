@@ -57,3 +57,10 @@ reverseList arg1 = unsafePerformIO $ do
   let arg1' = arg1
   return $ deserialize $ callCBOR foreign_tenkei_reverse_list tenkei_free $ CBOR_Array [serialize arg1']
 
+foreign import ccall "tenkei_apply_function" foreign_tenkei_apply_function :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
+applyFunction :: (Tenkei a, Tenkei b) => (a -> b) -> a -> b
+applyFunction arg1 arg2 = unsafePerformIO $ do
+  arg1' <- toFunPointer (serialize . (\[x1] -> arg1 (deserialize $ getValue x1)) . deserialize)
+  let arg2' = arg2
+  return $ deserialize $ callCBOR foreign_tenkei_apply_function tenkei_free $ CBOR_Array [serialize arg1', serialize arg2']
+

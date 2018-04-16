@@ -65,6 +65,25 @@ int32_t exp_2(int32_t e)
   return exponentiate(2,e);
 }
 
+struct tenkei_value head(struct list_tenkei_value l)
+{
+  return l.start[0];
+}
+
+cbor_item_t *cbor_head(cbor_item_t *args)
+{
+  cbor_item_t **arg_list = cbor_array_handle(args);
+  struct list_tenkei_value arg0 = deserialize_list_tenkei_value(arg_list[0]);
+  struct tenkei_value res = head(arg0);
+  cbor_item_t *result = serialize_tenkei_value(res);
+  return result;
+}
+
+void tenkei_head(uint8_t *input, size_t input_len, uint8_t **output, size_t *output_len)
+{
+  offer_cbor(&cbor_head, input, input_len, output, output_len);
+}
+
 int main(int argc, char *argv[])
 {
 #ifdef HASKELL_LIBRARY
@@ -103,6 +122,14 @@ int main(int argc, char *argv[])
   struct list_int32_t res5 = list_tenkei_value_to_list_int32_t(res4);
 
   print_list(res5);
+
+  struct tenkei_value list4 = {serialize_list_int32_t(list)};
+
+  struct tenkei_value res6_ = apply_function(&tenkei_head, list4);
+
+  int32_t res6 = deserialize_int32_t(res6_.contents);
+
+  //printf("%d\n", res6);
 
   fflush(stdout);
 

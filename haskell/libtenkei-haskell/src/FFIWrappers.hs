@@ -89,8 +89,8 @@ offer f = offerCBOR $ serialize . f . deserialize
 toPointer :: a -> IO TenkeiPtr
 toPointer = fmap (TenkeiPtr . castStablePtrToPtr) . newStablePtr
 
-toFunPointer :: (Tenkei a, Tenkei b) => (a -> b) -> IO TenkeiPtr
-toFunPointer = fmap (TenkeiPtr . castFunPtrToPtr) . cborFunctionToPtr . offer
+toFunPointer :: (CBOR -> CBOR) -> IO TenkeiPtr
+toFunPointer = fmap (TenkeiPtr . castFunPtrToPtr) . cborFunctionToPtr . offerCBOR
 
 fromPointer :: TenkeiPtr -> IO a
 fromPointer x = do

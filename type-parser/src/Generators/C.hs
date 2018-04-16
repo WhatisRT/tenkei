@@ -28,10 +28,10 @@ generateCLib = unlines . generateCLib'
 
 generateCLib' :: DefFile -> [String]
 generateCLib' (DefFile libName funDefs _) =
-  [ "#include \"" ++ snakeCase libName ++ ".h\""
+  [ "#include \"../libtenkei-c/ffi_wrappers.h\""
+  , "#include \"" ++ snakeCase libName ++ ".h\""
   , "#include \"../libtenkei-c/serializers.h\""
   , "#include \"../common/list_serializers.h\""
-  , "#include \"../libtenkei-c/ffi_wrappers.c\""
   , ""
   , "void tenkei_free(uint8_t *arg, size_t len)"
   , "{"
@@ -46,7 +46,7 @@ generateCInterface = unlines . generateCInterface'
 
 generateCInterface' :: DefFile -> [String]
 generateCInterface' (DefFile _ funDefs typeDefs) =
-  [ "#include \"../libtenkei-c/ffi_wrappers.c\""
+  [ "#include \"../libtenkei-c/ffi_wrappers.h\""
   , "#include \"../common/list_serializers.h\""
   , ""
   , "#ifdef __cplusplus"
@@ -96,12 +96,14 @@ typeToC' (Unnamed (Any _)) = "tenkei_value"
 typeToC' (Named ident) = typeId ident
 
 typeToSerializer :: Type -> String
+typeToSerializer (Unnamed (Primitive (Function sources target))) = "fun_ptr"
 typeToSerializer (Unnamed (Any _)) = "tenkei_value"
 typeToSerializer x = typeToC' x
 
 variableToC :: Variable -> String
 variableToC (name, Unnamed (Primitive (Function sources target))) =
-  typeToC target ++ "(" ++ variableId name ++ "*)(" ++ intercalate ", " (fmap (\(_,t) -> typeToC t ++ "*") sources) ++ ")"
+  "void (*" ++ variableId name ++ ")(uint8_t *, size_t, uint8_t **, size_t *)"
+  -- typeToC target ++ "(*" ++ variableId name ++ ")(" ++ intercalate ", " (fmap (\(_,t) -> typeToC t) sources) ++ ")"
 variableToC (name, t) = typeToC t ++ " " ++ variableId name
 
 funDefToExport :: FunDef -> [String]
@@ -120,7 +122,9 @@ funDefToExport (FunDef name sources target) =
   where
     argList = fmap (("arg" ++) . show) [0 .. length sources - 1]
     deserializeArg index argType =
-      typeToC argType ++ " arg" ++ show index ++ " = deserialize_" ++ typeToSerializer argType ++ "(arg_list[" ++ show index ++ "]);"
+      case argType of
+        Unnamed (Primitive (Function sources target)) -> "void (*arg" ++ show index ++ ")(uint8_t *input, size_t input_len, uint8_t **output, size_t *output_len) = deserialize_fun_ptr(arg_list[" ++ show index ++ "]);"
+        _ -> typeToC argType ++ " arg" ++ show index ++ " = deserialize_" ++ typeToSerializer argType ++ "(arg_list[" ++ show index ++ "]);"
 
 funDefToLibImport :: FunDef -> [String]
 funDefToLibImport (FunDef name _ _) =

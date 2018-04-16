@@ -1,4 +1,13 @@
-module TestLibrary (libraryLanguage, binaryOr, modifyArray, exponentiate, identity, chooseLeft, reverseList) where
+module TestLibrary
+  ( libraryLanguage
+  , binaryOr
+  , modifyArray
+  , exponentiate
+  , identity
+  , chooseLeft
+  , reverseList
+  , applyFunction
+  ) where
 
 import Data.Int
 
@@ -23,3 +32,6 @@ chooseLeft x _ = x
 reverseList :: [a] -> [a]
 reverseList [] = []
 reverseList (x : xs) = reverseList xs ++ [x]
+
+applyFunction :: (a -> b) -> a -> b
+applyFunction = ($)

@@ -94,7 +94,7 @@ typeToHaskell (Unnamed (Any ident)) = snakeCase ident
 typeToHaskell (Named ident) = pascalCase ident
 
 typeToHaskell' :: Type -> String
-typeToHaskell' (Unnamed (Primitive (Function _ _))) = "TenkeiPtr"
+typeToHaskell' (Unnamed (Primitive (Function s t))) = "(" ++ (intercalate " -> " $ (fmap snd s ++ [t]) >> ["TenkeiValue"]) ++ ")"
 typeToHaskell' (Unnamed (Primitive (List t))) = mconcat ["[", typeToHaskell' t, "]"]
 typeToHaskell' (Unnamed (Any _)) = "TenkeiValue"
 typeToHaskell' x = typeToHaskell x
@@ -131,6 +131,7 @@ funDefToExport f@(FunDef name sources _) =
     foreignName = foreignFunctionId name
     typeVars = hasTypeVars f
     argList = fmap (("arg" ++) . show) [1 .. length sources]
+    lambdaArgs s = fmap (("x" ++) . show) [0..length s - 1]
     offerName =
       if typeVars
         then foreignName ++ "_helper"
@@ -146,7 +147,7 @@ funDefToExport f@(FunDef name sources _) =
           zipWith
             (\arg (_, argType) ->
                case argType of
-                 (Unnamed (Primitive (Function _ _))) -> "(fromFunPointer (deserialize " ++ arg ++ ") tenkei_free)"
+                 (Unnamed (Primitive (Function s _))) -> "((fromFunPointer (deserialize " ++ arg ++ ") tenkei_free) . (\\" ++ unwords (lambdaArgs s) ++ " -> TenkeiValue $ CBOR_Array [" ++ intercalate "," (fmap ("getValue " ++) $ lambdaArgs s) ++ "]))"
                  _ -> "(deserialize " ++ arg ++ ")")
             argList
             sources
@@ -186,7 +187,16 @@ funDefToImport f@(FunDef name sources target) =
     convArg arg argName =
       mconcat $
       case arg of
-        (Unnamed (Primitive (Function _ _))) -> [argName, "' <- toFunPointer ", argName] --, " tenkei_free"]
+        (Unnamed (Primitive (Function xs _))) ->
+          [ argName
+          , "' <- toFunPointer (serialize . (\\["
+          , intercalate "," $ fmap (("x" ++) . show) [1 .. length xs]
+          , "] -> "
+          , argName
+          , " "
+          , unwords $ fmap (\x -> "(deserialize $ getValue x" ++ show x ++ ")") [1 .. length xs]
+          , ") . deserialize)"
+          ] --, " tenkei_free"]
         _ ->
           if usePointer arg
             then [argName, "' <- toPointer ", argName]

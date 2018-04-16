@@ -56,6 +56,13 @@ def main():
             size_t *output_len
         );
         
+        void tenkei_apply_function(
+            uint8_t *input,
+            size_t input_len,
+            uint8_t **output,
+            size_t *output_len
+        );
+        
         void tenkei_free(
             uint8_t *buffer,
             size_t buffer_len
@@ -101,6 +108,10 @@ def tenkei_choose_left(*args):
 @ffi.def_extern()
 def tenkei_reverse_list(*args):
     return offer(reverse_list)(*args)
+
+@ffi.def_extern()
+def tenkei_apply_function(*args):
+    return offer(apply_function)(*args)
 
 """ +
                                    read_file("test-library.py"))

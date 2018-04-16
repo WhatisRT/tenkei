@@ -1,7 +1,7 @@
 #include "cbor.h"
 
 struct tenkei_value {
-  struct cbor_item_t *contents;
+  cbor_item_t *contents;
 };
 
 cbor_item_t *serialize_bool(const bool i)
@@ -43,4 +43,18 @@ struct tenkei_value deserialize_tenkei_value(cbor_item_t *i)
 {
   struct tenkei_value res = {i};
   return res;
+}
+
+typedef void (*tenkei_fun_ptr)(uint8_t *, size_t, uint8_t **, size_t *);
+
+cbor_item_t *serialize_fun_ptr(tenkei_fun_ptr f)
+{
+  return cbor_build_uint64(*(uint64_t*)(&f));
+}
+
+void (*deserialize_fun_ptr(const cbor_item_t *cbor))(uint8_t *, size_t, uint8_t **, size_t *)
+{
+  uint64_t ptr = cbor_get_uint64(cbor);
+
+  return *(tenkei_fun_ptr*)&ptr;
 }
