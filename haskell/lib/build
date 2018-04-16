@@ -2,7 +2,9 @@
 # If you're debugging, replace -e with -ex in the line above.
 
 if [ "$(uname)" == Darwin ]; then
-	echo "macOS not supported" > /dev/null
+	set_soname() {
+	 install_name_tool -id "$@"
+	}
 else
 	set_soname() {
 		patchelf --set-soname "$@"
@@ -14,7 +16,6 @@ HSRTS_PATH="$(echo "$(dirname "$(dirname "$(stack exec which ghc)")")"/lib/ghc-*
 HSRTS_LIB="$(cd "${HSRTS_PATH}"; find * -name 'libHSrts-ghc*.*.*.*' | sed 's/^lib//' | sed 's/\.[^.]*$//' | head -n1)"
 eval "echo \"${PACKAGE_YAML_IN}\"" > ../package.yaml
 
-stack clean
 type-parser library haskell ../../TestLibraryDefinition TestLibraryTenkei.hs
 
 stack build

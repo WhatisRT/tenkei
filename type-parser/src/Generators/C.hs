@@ -127,8 +127,7 @@ funDefToImport (FunDef name sources target) =
     " " ++ functionId name ++ "(" ++ intercalate ", " (fmap variableToC sources) ++ ")"
   , "{"
   ] ++
-  indent
-    2
+  indent 1
     (["cbor_item_t *args = cbor_new_definite_array(" ++ show (length sources) ++ ");"] ++
      join (
       zipWith
