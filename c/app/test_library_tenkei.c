@@ -1,26 +1,15 @@
 #include "../libtenkei-c/ffi_wrappers.c"
 #include "../common/list_serializers.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-  extern void tenkei_free(uint8_t *buffer, size_t buffer_len);
-#ifdef HASKELL_LIBRARY
-  extern void hs_init(int* argc, char** argv[]);
-  extern void hs_exit();
-#endif
+void tenkei_free(uint8_t *buffer, size_t buffer_len);
 
-  extern void tenkei_library_language(uint8_t *input, size_t input_len, uint8_t **output, size_t *output_len);
-  extern void tenkei_binary_or(uint8_t *input, size_t input_len, uint8_t **output, size_t *output_len);
-  extern void tenkei_modify_array(uint8_t *input, size_t input_len, uint8_t **output, size_t *output_len);
-  extern void tenkei_exponentiate(uint8_t *input, size_t input_len, uint8_t **output, size_t *output_len);
-  extern void tenkei_identity(uint8_t *input, size_t input_len, uint8_t **output, size_t *output_len);
-  extern void tenkei_choose_left(uint8_t *input, size_t input_len, uint8_t **output, size_t *output_len);
-  extern void tenkei_reverse_list(uint8_t *input, size_t input_len, uint8_t **output, size_t *output_len);
-#ifdef __cplusplus
-}
-#endif
-
+extern void tenkei_library_language(uint8_t *input, size_t input_len, uint8_t **output, size_t *output_len);
+extern void tenkei_binary_or(uint8_t *input, size_t input_len, uint8_t **output, size_t *output_len);
+extern void tenkei_modify_array(uint8_t *input, size_t input_len, uint8_t **output, size_t *output_len);
+extern void tenkei_exponentiate(uint8_t *input, size_t input_len, uint8_t **output, size_t *output_len);
+extern void tenkei_identity(uint8_t *input, size_t input_len, uint8_t **output, size_t *output_len);
+extern void tenkei_choose_left(uint8_t *input, size_t input_len, uint8_t **output, size_t *output_len);
+extern void tenkei_reverse_list(uint8_t *input, size_t input_len, uint8_t **output, size_t *output_len);
 struct list_int32_t library_language()
 {
   cbor_item_t *args = cbor_new_definite_array(0);
