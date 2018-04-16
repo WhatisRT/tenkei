@@ -92,16 +92,11 @@ getLang2 = do
 
 build :: String -> String -> ErrorIO String
 build lang1 lang2 = do
-  _ <- executeProcesses (lang2 ++ "/lib") subst
-  _ <- liftIO $ callCommand ("cp " ++ lang2 ++ "/lib/libtest-library.dylib tenkei-build/")
-  _ <- executeProcesses (lang1 ++ "/app") subst
+  _ <- executeProcesses (lang2 ++ "/lib") []
+  _ <- liftIO $ callCommand ("cp " ++ lang2 ++ "/lib/libtest-library.so tenkei-build/")
+  _ <- executeProcesses (lang1 ++ "/app") []
   _ <- liftIO $ callCommand ("cp " ++ lang1 ++ "/app/test-exe tenkei-build/")
   return "Build successful!"
-  where
-    subst = substitutions ++ [("LIB_LANG", fmap toUpper lang2)]
-
-substitutions :: [(String, String)]
-substitutions = [("HASKELL_PATH", "/Library/Frameworks/GHC.framework/Versions/Current/usr/lib/ghc-8.2.2")]
 
 executeProcesses :: String -> [(String, String)] -> ErrorIO ()
 executeProcesses dir subst = liftIO $ runProcess dir subst "./build"
