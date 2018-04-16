@@ -34,5 +34,11 @@ hasTypeVar (Unnamed (Any _)) = True
 hasTypeVar (Unnamed (Primitive (List a))) = hasTypeVar a
 hasTypeVar _ = False
 
+getTypeVars :: Type -> [Identifier]
+getTypeVars (Unnamed (Primitive (Function sources target))) = (fmap snd sources ++ [target]) >>= getTypeVars
+getTypeVars (Unnamed (Primitive (List t))) = getTypeVars t
+getTypeVars (Unnamed (Any ident)) = [ident]
+getTypeVars _ = []
+
 hasTypeVars :: FunDef -> Bool
 hasTypeVars (FunDef _ sources target) = any hasTypeVar (target : fmap snd sources)

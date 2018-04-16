@@ -1,4 +1,3 @@
-{-# OPTIONS_GHC -Wall -Wno-name-shadowing #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleContexts #-}
 
@@ -59,18 +58,18 @@ functionId = camelCase
 foreignFunctionId :: Identifier -> String
 foreignFunctionId = ("tenkei_" ++) . snakeCase
 
-generateHaskellLib :: DefFile -> String
-generateHaskellLib = unlines . generateHaskellLib'
-
-generateHaskellLib' :: DefFile -> [String]
-generateHaskellLib' (DefFile libName funDefs typeDefs) =
-  libHeader (pascalCase libName) ++ (funDefs >>= funDefToImport) ++ (typeDefs >>= typeDefToText)
-
 generateHaskellInterface :: DefFile -> String
 generateHaskellInterface = unlines . generateHaskellInterface'
 
 generateHaskellInterface' :: DefFile -> [String]
-generateHaskellInterface' (DefFile libName funDefs _) = interfaceHeader (pascalCase libName) ++ (funDefs >>= funDefToExport)
+generateHaskellInterface' (DefFile libName funDefs typeDefs) =
+  libHeader (pascalCase libName) ++ (funDefs >>= funDefToImport) ++ (typeDefs >>= typeDefToText)
+
+generateHaskellLib :: DefFile -> String
+generateHaskellLib = unlines . generateHaskellLib'
+
+generateHaskellLib' :: DefFile -> [String]
+generateHaskellLib' (DefFile libName funDefs _) = interfaceHeader (pascalCase libName) ++ (funDefs >>= funDefToExport)
 
 typeToHaskell :: Type -> String
 typeToHaskell (Unnamed (Primitive Unit)) = "()"
@@ -95,13 +94,19 @@ typeToHaskell (Unnamed (Any ident)) = snakeCase ident
 typeToHaskell (Named ident) = pascalCase ident
 
 typeToHaskell' :: Type -> String
-typeToHaskell' (Unnamed (Primitive (Function sources target))) = "TenkeiPtr"
+typeToHaskell' (Unnamed (Primitive (Function _ _))) = "TenkeiPtr"
 typeToHaskell' (Unnamed (Primitive (List t))) = mconcat ["[", typeToHaskell' t, "]"]
-typeToHaskell' (Unnamed (Any _)) = "TenkeiPtr"
+typeToHaskell' (Unnamed (Any _)) = "TenkeiValue"
 typeToHaskell' x = typeToHaskell x
 
-generateFunSignature :: FunDef -> (Type -> String) -> String
-generateFunSignature (FunDef _ sources target) converter = intercalate " -> " $ fmap converter (fmap snd sources ++ [target])
+generateFunSignature :: FunDef -> (Type -> String) -> Bool -> String
+generateFunSignature f@(FunDef _ sources target) converter addConstraints = constraints ++ intercalate " -> " (fmap converter types)
+  where
+    types = fmap snd sources ++ [target]
+    constraints =
+      mif
+        (addConstraints && hasTypeVars f)
+        ("(" ++ intercalate ", " ((("Tenkei " ++) . snakeCase) <$> nub (types >>= getTypeVars)) ++ ") => ")
 
 mif :: Monoid m => Bool -> m -> m
 mif True = id
@@ -115,7 +120,7 @@ funDefToExport f@(FunDef name sources _) =
   (mconcat . snd) <$>
   filter
     fst
-    [ (typeVars, [foreignName, "_helper :: ", generateFunSignature f typeToHaskell'])
+    [ (typeVars, [foreignName, "_helper :: ", generateFunSignature f typeToHaskell' False])
     , (typeVars, [foreignName, "_helper = ", functionId name])
     , (True, [foreignName, " :: ", externalSignature])
     , (True, [foreignName, " = ", funImpl])
@@ -148,12 +153,16 @@ funDefToExport f@(FunDef name sources _) =
         , ")"
         ]
 
+usePointer :: Type -> Bool
+usePointer _ = False
+--usePointer = hasTypeVar
+
 funDefToImport :: FunDef -> [String]
 funDefToImport f@(FunDef name sources target) =
   fmap
     mconcat
     [ ["foreign import ccall \"", foreignName, "\" foreign_", foreignFunctionId name, " :: ", externalSignature]
-    , [functionId name, " :: ", generateFunSignature f typeToHaskell]
+    , [functionId name, " :: ", generateFunSignature f typeToHaskell True]
     , [functionId name, " ", unwords argList, " = ", funImpl argList]
     , [""]
     ]
@@ -169,7 +178,7 @@ funDefToImport f@(FunDef name sources target) =
         [ return "unsafePerformIO $ do"
         , zipWith convArg (fmap snd sources) argList
         , return $
-          (if hasTypeVar target
+          (if usePointer target
              then "fromPointer $ "
              else "return $ ") ++
           cborImpl (fmap (++ "'") args)
@@ -179,7 +188,7 @@ funDefToImport f@(FunDef name sources target) =
       case arg of
         (Unnamed (Primitive (Function _ _))) -> [argName, "' <- toFunPointer ", argName] --, " tenkei_free"]
         _ ->
-          if hasTypeVar arg
+          if usePointer arg
             then [argName, "' <- toPointer ", argName]
             else ["let ", argName, "' = ", argName]
 

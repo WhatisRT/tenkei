@@ -8,6 +8,9 @@ from ffi_wrappers import call
 def library_language(*args):
     return call(lib.tenkei_library_language)(*args)
 
+def binary_or(*args):
+    return call(lib.tenkei_binary_or)(*args)
+
 def modify_array(*args):
     return call(lib.tenkei_modify_array)(*args)
 

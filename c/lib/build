@@ -1,4 +1,5 @@
 #!/bin/sh
+type-parser library c ../../TestLibraryDefinition test_library_tenkei.c
 if [ ! -e CMakeCache.txt ]; then
 	cmake .
 fi

@@ -1,2 +1,4 @@
 #!/bin/sh
+type-parser library python ../../TestLibraryDefinition test-library-tenkei.py
 python3 test-library-tenkei.py
+rm libtest-library.dylib

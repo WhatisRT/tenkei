@@ -1,9 +1,12 @@
-module TestLibrary (libraryLanguage, modifyArray, exponentiate, identity, chooseLeft, reverseList) where
+module TestLibrary (libraryLanguage, binaryOr, modifyArray, exponentiate, identity, chooseLeft, reverseList) where
 
 import Data.Int
 
 libraryLanguage :: [Int32]
 libraryLanguage = fmap (fromIntegral . fromEnum) "haskell"
+
+binaryOr :: Bool -> Bool -> Bool
+binaryOr = (||)
 
 modifyArray :: [Int32] -> [Int32]
 modifyArray = zipWith (*) [1..]
@@ -20,6 +23,3 @@ chooseLeft x _ = x
 reverseList :: [a] -> [a]
 reverseList [] = []
 reverseList (x : xs) = reverseList xs ++ [x]
-
---applyFunction :: (Int32 -> Int32) -> Int32 -> Int32
---applyFunction f = f

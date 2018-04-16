@@ -1,6 +1,9 @@
 def library_language():
     return [112,121,116,104,111,110]
 
+def binary_or(x, y):
+    return x or y
+
 def modify_array(x):
     for i in range(0, len(x)):
         x[i] = x[i] * (i + 1)

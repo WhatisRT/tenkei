@@ -14,6 +14,13 @@ def main():
             size_t *output_len
         );
         
+        void tenkei_binary_or(
+            uint8_t *input,
+            size_t input_len,
+            uint8_t **output,
+            size_t *output_len
+        );
+        
         void tenkei_modify_array(
             uint8_t *input,
             size_t input_len,
@@ -70,6 +77,10 @@ def tenkei_free(buffer, buffer_len):
 @ffi.def_extern()
 def tenkei_library_language(*args):
     return offer(library_language)(*args)
+
+@ffi.def_extern()
+def tenkei_binary_or(*args):
+    return offer(binary_or)(*args)
 
 @ffi.def_extern()
 def tenkei_modify_array(*args):

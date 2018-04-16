@@ -1,6 +1,6 @@
 module Generators.Python
-  ( generatePythonInterface
-  , generatePythonLib
+  ( generatePythonLib
+  , generatePythonInterface
   ) where
 
 import Generators.General
@@ -28,11 +28,11 @@ indent = indentStr " "
 foreignFunctionId :: Identifier -> String
 foreignFunctionId = ("tenkei_" ++) . snakeCase
 
-generatePythonInterface :: DefFile -> String
-generatePythonInterface = unlines . generatePythonInterface'
+generatePythonLib :: DefFile -> String
+generatePythonLib = unlines . generatePythonLib'
 
-generatePythonInterface' :: DefFile -> [String]
-generatePythonInterface' (DefFile libName funDefs _) =
+generatePythonLib' :: DefFile -> [String]
+generatePythonLib' (DefFile _ funDefs _) =
   interfaceHeader ++
   (funDefs >>= funDefToExportC) ++
   ["        void tenkei_free(", "            uint8_t *buffer,", "            size_t buffer_len", "        );"] ++
@@ -40,7 +40,7 @@ generatePythonInterface' (DefFile libName funDefs _) =
     4
     ([ "\"\"\")"
      , "ffibuilder.set_source(\"my_plugin\", \"\")"
-     , "ffibuilder.embedding_init_code(read_file(\"ffi_wrappers.py\") + \"\\n\\n\" +"
+     , "ffibuilder.embedding_init_code(read_file(\"../libtenkei-python/ffi_wrappers.py\") + \"\\n\\n\" +"
      ] ++
      indent 31 ["\"\"\""]) ++
   [ "from collections import Counter"
@@ -56,22 +56,22 @@ generatePythonInterface' (DefFile libName funDefs _) =
   ] ++
   (funDefs >>= funDefToExportPython) ++
   ["\"\"\" +"] ++
-  indent 35 ["read_file(\"test_library.py\"))"] ++
-  ["    ffibuilder.compile(target=\"libmy_plugin.*\")", "", "if __name__ == '__main__':", "    main()"]
+  indent 35 ["read_file(\"test-library.py\"))"] ++
+  ["    ffibuilder.compile(target=\"libtest-library.*\")", "", "if __name__ == '__main__':", "    main()"]
 
-generatePythonLib :: DefFile -> String
-generatePythonLib = unlines . generatePythonLib'
+generatePythonInterface :: DefFile -> String
+generatePythonInterface = unlines . generatePythonInterface'
 
-generatePythonLib' :: DefFile -> [String]
-generatePythonLib' (DefFile _ funDefs _) =
+generatePythonInterface' :: DefFile -> [String]
+generatePythonInterface' (DefFile _ funDefs _) =
   [ "from cffi import FFI"
   , "ffibuilder = FFI()"
   , ""
-  , "ffibuilder.set_source(\"_example\","
+  , "ffibuilder.set_source(\"my_plugin\","
   , "   r\"\"\""
   , "    \"\"\","
   , "                      libraries=['test-library'],"
-  , "                      library_dirs=['.'])"
+  , "                      library_dirs=['../../tenkei-build'])"
   , "                      #library_dirs=['./', '/Library/Frameworks/GHC.framework/Versions/Current/usr/lib/ghc-8.2.2/rts/'],"
   , "                      #extra_compile_args=['-arch x86_64', '-Wl,-rpath=/Library/Frameworks/GHC.framework/Versions/Current/usr/lib/ghc-8.2.2/rts/'])"
   , ""

@@ -14,6 +14,8 @@ HSRTS_PATH="$(echo "$(dirname "$(dirname "$(stack exec which ghc)")")"/lib/ghc-*
 HSRTS_LIB="$(cd "${HSRTS_PATH}"; find * -name 'libHSrts-ghc*.*.*.*' | sed 's/^lib//' | sed 's/\.[^.]*$//' | head -n1)"
 eval "echo \"${PACKAGE_YAML_IN}\"" > ../package.yaml
 
+type-parser library haskell ../../TestLibraryDefinition TestLibraryTenkei.hs
+
 stack build
 ORIGINAL="$(find ../.stack-work/dist -name 'libHShaskell-test-lib-*-ghc*.*.*.*')"
 EXT="$(echo "${ORIGINAL}" | sed 's/^.*\.//')"

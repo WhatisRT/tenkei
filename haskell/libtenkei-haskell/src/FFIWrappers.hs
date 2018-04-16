@@ -87,20 +87,20 @@ offer :: (Tenkei a, Tenkei b) => (a -> b) -> Ptr Word8 -> CSize -> Ptr (Ptr Word
 offer f = offerCBOR $ serialize . f . deserialize
 
 toPointer :: a -> IO TenkeiPtr
-toPointer = fmap castStablePtrToPtr . newStablePtr
+toPointer = fmap (TenkeiPtr . castStablePtrToPtr) . newStablePtr
 
 toFunPointer :: (Tenkei a, Tenkei b) => (a -> b) -> IO TenkeiPtr
-toFunPointer = fmap castFunPtrToPtr . cborFunctionToPtr . offer
+toFunPointer = fmap (TenkeiPtr . castFunPtrToPtr) . cborFunctionToPtr . offer
 
 fromPointer :: TenkeiPtr -> IO a
 fromPointer x = do
-  let stable = castPtrToStablePtr x
+  let stable = castPtrToStablePtr $ getPtr x
   contents <- deRefStablePtr stable
   freeStablePtr stable
   return contents
 
 fromFunPointer :: (Tenkei a, Tenkei b) => TenkeiPtr -> (Ptr Word8 -> CSize -> IO ()) -> a -> b
-fromFunPointer x _ = call (cborPtrToFunction $ castPtrToFunPtr x) (\_ _ -> return ()) -- this leaks memory!
+fromFunPointer x _ = call (cborPtrToFunction $ castPtrToFunPtr $ getPtr x) (\_ _ -> return ()) -- this leaks memory!
 
 toPointerF :: (Traversable f) => f a -> IO (f TenkeiPtr)
 toPointerF = traverse toPointer

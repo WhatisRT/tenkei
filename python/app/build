@@ -1,3 +1,4 @@
 #!/bin/sh
+type-parser interface python ../../TestLibraryDefinition main.py
 python3 main.py
 cp test-exe-template test-exe

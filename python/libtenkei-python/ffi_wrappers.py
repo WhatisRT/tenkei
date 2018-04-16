@@ -1,5 +1,5 @@
 import cbor2
-from _example import ffi
+from my_plugin import ffi
 
 def offer(f):
     def offered(input, input_len, output, output_len):

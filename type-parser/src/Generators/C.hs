@@ -27,10 +27,16 @@ generateCLib :: DefFile -> String
 generateCLib = unlines . generateCLib'
 
 generateCLib' :: DefFile -> [String]
-generateCLib' (DefFile libName funDefs typeDefs) =
-  [ "#include \"" ++ snakeCase libName ++ ".c\""
-  , "#include \"../libtenkei-c/serializers.c\""
+generateCLib' (DefFile libName funDefs _) =
+  [ "#include \"" ++ snakeCase libName ++ ".h\""
+  , "#include \"../libtenkei-c/serializers.h\""
+  , "#include \"../common/list_serializers.h\""
   , "#include \"../libtenkei-c/ffi_wrappers.c\""
+  , ""
+  , "void tenkei_free(uint8_t *arg, size_t len)"
+  , "{"
+  , "  return;"
+  , "}"
   , ""
   ] ++
   (funDefs >>= funDefToExport)
@@ -39,18 +45,16 @@ generateCInterface :: DefFile -> String
 generateCInterface = unlines . generateCInterface'
 
 generateCInterface' :: DefFile -> [String]
-generateCInterface' (DefFile libName funDefs typeDefs) =
-  [ "#ifdef __cplusplus"
-  , "extern \"C\" {"
-  , "#endif"
-  , "  void tenkei_free(uint8_t *buffer, size_t buffer_len);"
-  , "  void hs_init(int *argc, char **argv[]);"
-  , "  void hs_exit(void);"
+generateCInterface' (DefFile _ funDefs typeDefs) =
+  [ "#include \"../libtenkei-c/ffi_wrappers.c\""
+  , "#include \"../common/list_serializers.h\""
+  , ""
+  , "void tenkei_free(uint8_t *buffer, size_t buffer_len);"
   , ""
   ] ++
-  indent 2 (funDefs >>= funDefToLibImport) ++
-  ["#ifdef __cplusplus", "}", "#endif", ""] ++
-  (typeDefs >>= typeDefToText) ++ (requiredTypes >>= primitiveTypeDefToText ) ++ ["#include \"serializers.c\"", ""] ++ (funDefs >>= funDefToImport)
+  (funDefs >>= funDefToLibImport) ++
+  (typeDefs >>= typeDefToText) -- ++ (requiredTypes >>= primitiveTypeDefToText )
+  ++ (funDefs >>= funDefToImport)
   where
     types (FunDef _ sources target) = target : fmap snd sources
     requiredTypes = nub $ funDefs >>= types
@@ -58,12 +62,12 @@ generateCInterface' (DefFile libName funDefs typeDefs) =
 typeToC :: Type -> String
 typeToC (Named ident) = "struct " ++ typeId ident
 typeToC (Unnamed (Primitive (List t))) = "struct list_" ++ typeToC' t
-typeToC (Unnamed (Any _)) = "void*"
+typeToC (Unnamed (Any _)) = "struct tenkei_value"
 typeToC x = typeToC' x
 
 typeToC' :: Type -> String
 typeToC' (Unnamed (Primitive Unit)) = "()"
-typeToC' (Unnamed (Primitive Bool)) = "Bool"
+typeToC' (Unnamed (Primitive Bool)) = "bool"
 typeToC' (Unnamed (Primitive Int8)) = "int8_t"
 typeToC' (Unnamed (Primitive Int16)) = "int16_t"
 typeToC' (Unnamed (Primitive Int32)) = "int32_t"
@@ -78,18 +82,18 @@ typeToC' (Unnamed (Primitive Float64)) = "Float64"
 typeToC' (Unnamed (Primitive CodepointUnicode)) = "char"
 typeToC' (Unnamed (Primitive StringUTF8)) = "String"
 typeToC' (Unnamed (Primitive (Function sources target))) =
-  typeToC target ++ "(f*)(" ++ (intercalate ", " $ fmap (\(_,t) -> typeToC t ++ "*") sources) ++ ")"
+  typeToC target ++ "(f*)(" ++ intercalate ", " (fmap (\(_,t) -> typeToC t ++ "*") sources) ++ ")"
 typeToC' (Unnamed (Primitive (List t))) = "list_" ++ typeToC' t
-typeToC' (Unnamed (Any ident)) = "tenkei_ptr"
+typeToC' (Unnamed (Any _)) = "tenkei_value"
 typeToC' (Named ident) = typeId ident
 
 typeToSerializer :: Type -> String
-typeToSerializer (Unnamed (Any _)) = "tenkei_ptr"
+typeToSerializer (Unnamed (Any _)) = "tenkei_value"
 typeToSerializer x = typeToC' x
 
 variableToC :: Variable -> String
-variableToC (name, (Unnamed (Primitive (Function sources target)))) =
-  typeToC target ++ "(" ++ variableId name ++ "*)(" ++ (intercalate ", " $ fmap (\(_,t) -> typeToC t ++ "*") sources) ++ ")"
+variableToC (name, Unnamed (Primitive (Function sources target))) =
+  typeToC target ++ "(" ++ variableId name ++ "*)(" ++ intercalate ", " (fmap (\(_,t) -> typeToC t ++ "*") sources) ++ ")"
 variableToC (name, t) = typeToC t ++ " " ++ variableId name
 
 funDefToExport :: FunDef -> [String]
@@ -97,7 +101,7 @@ funDefToExport (FunDef name sources target) =
   ["cbor_item_t *cbor_" ++ functionId name ++ "(cbor_item_t *args)", "{"] ++
   indent 1
     (["cbor_item_t **arg_list = cbor_array_handle(args);"] ++
-     zipWith deserializeArg [0 ..] (fmap snd sources) ++
+     zipWith deserializeArg ([0 ..] :: [Int]) (fmap snd sources) ++
      [ typeToC target ++ " res = " ++ functionId name ++ "(" ++ intercalate ", " argList ++ ");"
      , "cbor_item_t *result = serialize_" ++ typeToSerializer target ++ "(res);"
      , "return result;"
@@ -129,11 +133,11 @@ funDefToImport (FunDef name sources target) =
            , "cbor_array_push(args, arg" ++ show i ++ ");"
            ])
         sources
-        [1 ..]) ++
+        ([1 ..] :: [Int])) ++
      [ "cbor_item_t *res = call_cbor(" ++ foreignFunctionId name ++ ", args);"
      , typeToC target ++ " result = deserialize_" ++ typeToSerializer target ++ "(res);"
      , "cbor_decref(&args);"
-     , "cbor_decref(&res);"
+     --, "cbor_decref(&res);"
      , "return result;"
      ]) ++
   ["}", ""]
@@ -148,6 +152,6 @@ primitiveTypeDefToText :: Type -> [String]
 primitiveTypeDefToText (Unnamed (Primitive (List t))) =
   ["struct list_" ++ typeToC' t ++ " {", "  " ++ typeName ++ " *start;", "  unsigned int length;", "};", ""]
   where typeName = case t of
-          Unnamed (Any _) -> "void *"
+          Unnamed (Any _) -> "struct tenkei_value"
           _ -> typeToC' t
 primitiveTypeDefToText _ = []
