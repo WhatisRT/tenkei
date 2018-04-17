@@ -86,10 +86,6 @@ void tenkei_head(uint8_t *input, size_t input_len, uint8_t **output, size_t *out
 
 int main(int argc, char *argv[])
 {
-#ifdef HASKELL_LIBRARY
-  hs_init(&argc, &argv);
-#endif
-
   printf("c\n");
 
   print_list_char(library_language());
@@ -132,8 +128,4 @@ int main(int argc, char *argv[])
   //printf("%d\n", res6);
 
   fflush(stdout);
-
-#ifdef HASKELL_LIBRARY
-  hs_exit();
-#endif
 }
