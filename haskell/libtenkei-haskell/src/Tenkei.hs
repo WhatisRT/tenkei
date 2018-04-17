@@ -28,6 +28,22 @@ instance Tenkei Bool where
   deserialize (CBOR_UInt i) = i == 1
   deserialize _ = error "Error while interpreting CBOR: not a boolean"
 
+instance Tenkei Int8 where
+  serialize i
+    | i >= 0 = CBOR_UInt $ fromIntegral i
+    | otherwise = CBOR_SInt $ fromIntegral i
+  deserialize (CBOR_UInt i) = fromIntegral i
+  deserialize (CBOR_SInt i) = fromIntegral i
+  deserialize x = error ("Error while interpreting CBOR: not an integer:\n" ++ show x)
+
+instance Tenkei Int16 where
+  serialize i
+    | i >= 0 = CBOR_UInt $ fromIntegral i
+    | otherwise = CBOR_SInt $ fromIntegral i
+  deserialize (CBOR_UInt i) = fromIntegral i
+  deserialize (CBOR_SInt i) = fromIntegral i
+  deserialize x = error ("Error while interpreting CBOR: not an integer:\n" ++ show x)
+
 instance Tenkei Int32 where
   serialize i
     | i >= 0 = CBOR_UInt $ fromIntegral i
@@ -36,7 +52,25 @@ instance Tenkei Int32 where
   deserialize (CBOR_SInt i) = fromIntegral i
   deserialize x = error ("Error while interpreting CBOR: not an integer:\n" ++ show x)
 
-instance Tenkei Char where
+instance Tenkei Int64 where
+  serialize i
+    | i >= 0 = CBOR_UInt $ fromIntegral i
+    | otherwise = CBOR_SInt $ fromIntegral i
+  deserialize (CBOR_UInt i) = fromIntegral i
+  deserialize (CBOR_SInt i) = fromIntegral i
+  deserialize x = error ("Error while interpreting CBOR: not an integer:\n" ++ show x)
+
+instance Tenkei Float where
+  serialize = CBOR_Float
+  deserialize (CBOR_Float x) = x
+  deserialize x = error ("Error while interpreting CBOR: not a float:\n" ++ show x)
+
+instance Tenkei Double where
+  serialize = CBOR_Double
+  deserialize (CBOR_Double x) = x
+  deserialize x = error ("Error while interpreting CBOR: not a float:\n" ++ show x)
+
+instance Tenkei Char where -- codepoint_unicode
   serialize = CBOR_UInt . fromIntegral . fromEnum
   deserialize (CBOR_UInt b) = toEnum $ fromIntegral b
   deserialize x = error ("Error while interpreting CBOR: not a character:\n" ++ show x)
