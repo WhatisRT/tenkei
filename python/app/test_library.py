@@ -1,4 +1,4 @@
-from _example import ffi, lib
+from my_plugin import ffi, lib
 import sys
 sys.path.append("../python/libtenkei-python")
 from ffi_wrappers import call
