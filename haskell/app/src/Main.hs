@@ -5,9 +5,7 @@ import Data.List
 import Data.Int
 
 main :: IO ()
-main =
-  putStr $
-  intercalate
+main = putStr $ intercalate
     "\n"
     [ "haskell"
     , showLang libraryLanguage
@@ -17,7 +15,6 @@ main =
     , show $ identity ([1..10] :: [Int32])
     , show $ chooseLeft (1 :: Int32) (2 :: Int32)
     , show $ reverse [1..10]
-    --, show $ applyFunction head ([[1,2],[3,4]] :: [[Int32]])
     , ""
     ]
 
