@@ -16,6 +16,7 @@ dependencies:
 - generics-sop
 - binary
 - bytestring
+- bytestring-conversion
 
 library:
   source-dirs:

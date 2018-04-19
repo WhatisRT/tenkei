@@ -11,6 +11,8 @@ import Data.CBOR
 import Data.Maybe
 import Generics.SOP
 
+import Data.ByteString.Conversion
+
 import Data.Int
 
 class Tenkei a where
@@ -74,6 +76,11 @@ instance Tenkei Char where -- codepoint_unicode
   serialize = CBOR_UInt . fromIntegral . fromEnum
   deserialize (CBOR_UInt b) = toEnum $ fromIntegral b
   deserialize x = error ("Error while interpreting CBOR: not a character:\n" ++ show x)
+
+instance Tenkei Integer where
+  serialize = CBOR_BS . toByteString'
+  deserialize (CBOR_BS s) | (Just i) <- fromByteString s = i
+                          | otherwise = error "Error while interpreting CBOR: not a bigint"
 
 instance Tenkei a => Tenkei [a] where
   serialize = CBOR_Array . fmap serialize

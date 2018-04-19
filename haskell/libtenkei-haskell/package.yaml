@@ -23,6 +23,7 @@ dependencies:
 - bytestring
 - CBOR
 - generics-sop
+- bytestring-conversion
 
 library:
   source-dirs: src
