@@ -116,7 +116,7 @@ int main(int argc, char *argv[])
 
   struct tenkei_value list4 = {serialize_list_int32_t(list)};
 
-  struct tenkei_value res6_ = apply_function(&cbor_head, list4);
+  struct tenkei_value res6_ = apply_function(offer_fun_ptr_cbor(&cbor_head), list4);
 
   int32_t res6 = deserialize_int32_t(res6_.contents);
 
