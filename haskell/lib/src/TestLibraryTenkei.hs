@@ -52,6 +52,6 @@ foreign export ccall tenkei_reverse_list :: Ptr Word8 -> CSize -> Ptr (Ptr Word8
 tenkei_apply_function_helper :: (TenkeiValue -> TenkeiValue) -> TenkeiValue -> TenkeiValue
 tenkei_apply_function_helper = applyFunction
 tenkei_apply_function :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
-tenkei_apply_function = offerCBOR (\(CBOR_Array [arg1, arg2]) -> serialize $ tenkei_apply_function_helper ((fromFunPointer (deserialize arg1) tenkei_free) . (\x0 -> TenkeiValue $ CBOR_Array [getValue x0])) (deserialize arg2))
+tenkei_apply_function = offerCBOR (\(CBOR_Array [arg1, arg2]) -> serialize $ tenkei_apply_function_helper (TenkeiValue . (fromFunPointer (deserialize arg1)) . (\x0 -> CBOR_Array [getValue x0])) (deserialize arg2))
 foreign export ccall tenkei_apply_function :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
 

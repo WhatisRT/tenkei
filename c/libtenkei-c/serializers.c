@@ -4,6 +4,35 @@ struct tenkei_value {
   cbor_item_t *contents;
 };
 
+typedef void (*tenkei_fun_ptr_)(void *, uint8_t *, size_t, uint8_t **, size_t *);
+typedef void (*tenkei_free_ptr)(uint8_t *, size_t);
+
+struct tenkei_fun_ptr {
+  tenkei_fun_ptr_ fun;
+  tenkei_free_ptr free_fun;
+  void *data;
+};
+
+uint64_t tenkei_fun_ptr_to_ptr(tenkei_fun_ptr_ f)
+{
+  return *(uint64_t*)(&f);
+}
+
+tenkei_fun_ptr_ ptr_to_tenkei_fun_ptr(const uint64_t ptr)
+{
+  return *(tenkei_fun_ptr_*)&ptr;
+}
+
+uint64_t tenkei_free_ptr_to_ptr(tenkei_free_ptr f)
+{
+  return *(uint64_t*)(&f);
+}
+
+void (*ptr_to_tenkei_free_ptr(const uint64_t ptr))(uint8_t *, size_t)
+{
+  return *(tenkei_free_ptr*)&ptr;
+}
+
 cbor_item_t *serialize_bool(const bool i)
 {
   return cbor_build_uint8(i);
@@ -45,16 +74,26 @@ struct tenkei_value deserialize_tenkei_value(cbor_item_t *i)
   return res;
 }
 
-typedef void (*tenkei_fun_ptr)(uint8_t *, size_t, uint8_t **, size_t *);
-
-cbor_item_t *serialize_fun_ptr(tenkei_fun_ptr f)
+cbor_item_t *serialize_fun_ptr(struct tenkei_fun_ptr f)
 {
-  return cbor_build_uint64(*(uint64_t*)(&f));
+  cbor_item_t *result = cbor_new_definite_array(3);
+
+  cbor_array_push(result, cbor_build_uint64(tenkei_fun_ptr_to_ptr(f.fun)));
+  cbor_array_push(result, cbor_build_uint64(tenkei_free_ptr_to_ptr(f.free_fun)));
+  cbor_array_push(result, cbor_build_uint64((uint64_t)f.data));
+
+  return result;
 }
 
-void (*deserialize_fun_ptr(const cbor_item_t *cbor))(uint8_t *, size_t, uint8_t **, size_t *)
+struct tenkei_fun_ptr deserialize_fun_ptr(cbor_item_t *cbor)
 {
-  uint64_t ptr = cbor_get_uint64(cbor);
+  cbor_item_t **res_list = cbor_array_handle(cbor);
 
-  return *(tenkei_fun_ptr*)&ptr;
+  struct tenkei_fun_ptr result = {
+    ptr_to_tenkei_fun_ptr(cbor_get_int(res_list[0])),
+    ptr_to_tenkei_free_ptr(cbor_get_int(res_list[1])),
+    (void *)cbor_get_int(res_list[2])
+  };
+
+  return result;
 }

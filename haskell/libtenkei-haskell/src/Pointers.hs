@@ -19,3 +19,10 @@ newtype TenkeiValue = TenkeiValue { getValue :: CBOR }
 instance Tenkei TenkeiValue where
   serialize = getValue
   deserialize = TenkeiValue
+
+data TenkeiFunPtr = TenkeiFunPtr { funPtr :: TenkeiPtr, freePtr :: TenkeiPtr, dataPtr :: TenkeiPtr }
+
+instance Tenkei TenkeiFunPtr where
+  serialize p = CBOR_Array $ fmap serialize [funPtr p, freePtr p, dataPtr p]
+  deserialize (CBOR_Array [fct, fr, d]) = TenkeiFunPtr (deserialize fct) (deserialize fr) (deserialize d)
+  deserialize x = error ("Error while interpreting CBOR: not a function:\n" ++ show x)

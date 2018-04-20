@@ -147,7 +147,7 @@ funDefToExport f@(FunDef name sources _) =
           zipWith
             (\arg (_, argType) ->
                case argType of
-                 (Unnamed (Primitive (Function s _))) -> "((fromFunPointer (deserialize " ++ arg ++ ") tenkei_free) . (\\" ++ unwords (lambdaArgs s) ++ " -> TenkeiValue $ CBOR_Array [" ++ intercalate "," (fmap ("getValue " ++) $ lambdaArgs s) ++ "]))"
+                 (Unnamed (Primitive (Function s _))) -> "(TenkeiValue . (fromFunPointer (deserialize " ++ arg ++ ")) . (\\" ++ unwords (lambdaArgs s) ++ " -> CBOR_Array [" ++ intercalate "," (fmap ("getValue " ++) $ lambdaArgs s) ++ "]))"
                  _ -> "(deserialize " ++ arg ++ ")")
             argList
             sources

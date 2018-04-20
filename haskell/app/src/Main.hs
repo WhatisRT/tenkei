@@ -15,6 +15,7 @@ main = putStr $ intercalate
     , show $ identity ([1..10] :: [Int32])
     , show $ chooseLeft (1 :: Int32) (2 :: Int32)
     , show $ reverse [1..10]
+    -- , show $ applyFunction head ([[1,2], [2,3]] :: [[Int32]])
     , ""
     ]
 

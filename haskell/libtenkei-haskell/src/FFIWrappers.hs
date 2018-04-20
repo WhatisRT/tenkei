@@ -38,11 +38,22 @@ foreign import ccall "wrapper" cborFunctionToPtr
 
 foreign import ccall "dynamic" cborPtrToFunction
   :: FunPtr
-  (Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ())
-  -> (Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ())
+  (Ptr () -> Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ())
+  -> (Ptr () -> Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ())
+
+foreign import ccall "wrapper" cborFunctionPtrToPtr
+  :: (CSize -> Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()) ->
+  IO
+    (FunPtr
+       (CSize -> Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()))
+
+foreign import ccall "wrapper" freeFunctionToPtr :: (Ptr Word8 -> CSize -> IO ()) -> IO (FunPtr (Ptr Word8 -> CSize -> IO ()))
 
 tenkeiFree :: Ptr Word8 -> CSize -> IO ()
 tenkeiFree args _ = free args
+
+tenkeiFreePtr :: FunPtr (Ptr Word8 -> CSize -> IO ())
+tenkeiFreePtr = unsafePerformIO $ freeFunctionToPtr tenkeiFree
 
 cborToBinary :: CBOR -> [Word8]
 cborToBinary = unpack . runPut . putCBOR
@@ -83,14 +94,24 @@ offerCBOR f args argn res resn = do
   res_ptr <- newArray x
   poke res res_ptr
 
+-- Throw away the data for function pointers
+offerCBORPtr :: (CBOR -> CBOR) -> CSize -> Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
+offerCBORPtr f d = offerCBOR f
+
+callCBORPtr :: Ptr () -> (Ptr () -> Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()) -> (Ptr Word8 -> CSize -> IO ()) -> CBOR -> CBOR
+callCBORPtr d f = callCBOR (f d)
+
 offer :: (Tenkei a, Tenkei b) => (a -> b) -> Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
 offer f = offerCBOR $ serialize . f . deserialize
 
 toPointer :: a -> IO TenkeiPtr
 toPointer = fmap (TenkeiPtr . castStablePtrToPtr) . newStablePtr
 
-toFunPointer :: (CBOR -> CBOR) -> IO TenkeiPtr
-toFunPointer = fmap (TenkeiPtr . castFunPtrToPtr) . cborFunctionToPtr . offerCBOR
+toFunPointer :: (CBOR -> CBOR) -> IO TenkeiFunPtr
+toFunPointer = (fmap toTenkeiFunPtr) . cborFunctionPtrToPtr . offerCBORPtr
+  where
+    toTenkeiFunPtr :: FunPtr a -> TenkeiFunPtr
+    toTenkeiFunPtr f = TenkeiFunPtr (TenkeiPtr $ castFunPtrToPtr f) (TenkeiPtr $ castFunPtrToPtr tenkeiFreePtr) $ TenkeiPtr nullPtr
 
 fromPointer :: TenkeiPtr -> IO a
 fromPointer x = do
@@ -99,8 +120,8 @@ fromPointer x = do
   freeStablePtr stable
   return contents
 
-fromFunPointer :: (Tenkei a, Tenkei b) => TenkeiPtr -> (Ptr Word8 -> CSize -> IO ()) -> a -> b
-fromFunPointer x _ = call (cborPtrToFunction $ castPtrToFunPtr $ getPtr x) (\_ _ -> return ()) -- this leaks memory!
+fromFunPointer :: TenkeiFunPtr -> CBOR -> CBOR
+fromFunPointer f = callCBORPtr (getPtr $ dataPtr f) (cborPtrToFunction $ castPtrToFunPtr $ getPtr $ funPtr f) (\_ _ -> return ()) -- this leaks memory! Replace by freePtr later!
 
 toPointerF :: (Traversable f) => f a -> IO (f TenkeiPtr)
 toPointerF = traverse toPointer

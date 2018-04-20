@@ -27,6 +27,7 @@ Type                 | Major types | Additional information | Notes
 `codepoint\_unicode` | 0           | 0-26                   |
 `string\_utf8`       | 3           | 0-27                   |
 `list`               | 4           | 0-31                   |
+`function`           | 4           | 3                      | [fct, free, user], see below
 
 ### Automatic conversions
 
@@ -52,7 +53,7 @@ The first two arguments correspond to the input bytestring, the second two to th
 Let S and T be two types with a type variable and A be a type without a type variable. A function of type A -> S a or S a -> A will in general need to serialize everything for the type S a to be computed, or to return the result. On the other hand, a function S a -> T a what works for all types a can never use any sepecific information about a, so it can instead be viewed as a function S ptr -> T ptr where the serializers only serialize the data up to the pointers. Thus, in the presence of type variables, the correct serialization strategy has to be chosen.
 
 ## Function pointers
-Tenkei functions can accept function pointers (but the type of these function pointers must not contain type variables for the time being, see issue #2). These are passed around just like regular pointers. These functions must have the same (C) signature as other tenkei functions. Note: there is currently no mechanism to pass the correct free function required with function pointers.
+Function pointers consist of 3 parts: A pointer to the function, a pointer and to a free function, which should be called on the functions result after deserialization and a pointer to additional data (like its environment for example). The pointer to additional data is optional.
 
 ## Next version of the specification
 * Decide how to implement the primitive unit

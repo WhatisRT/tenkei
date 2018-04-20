@@ -79,11 +79,6 @@ cbor_item_t *cbor_head(cbor_item_t *args)
   return result;
 }
 
-void tenkei_head(uint8_t *input, size_t input_len, uint8_t **output, size_t *output_len)
-{
-  offer_cbor(&cbor_head, input, input_len, output, output_len);
-}
-
 int main(int argc, char *argv[])
 {
   printf("c\n");
@@ -121,7 +116,7 @@ int main(int argc, char *argv[])
 
   struct tenkei_value list4 = {serialize_list_int32_t(list)};
 
-  struct tenkei_value res6_ = apply_function(&tenkei_head, list4);
+  struct tenkei_value res6_ = apply_function(&cbor_head, list4);
 
   int32_t res6 = deserialize_int32_t(res6_.contents);
 

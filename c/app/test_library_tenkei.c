@@ -92,7 +92,7 @@ struct list_tenkei_value reverse_list(struct list_tenkei_value param)
   return result;
 }
 
-struct tenkei_value apply_function(void (*param0)(uint8_t *, size_t, uint8_t **, size_t *), struct tenkei_value param1)
+struct tenkei_value apply_function(struct tenkei_fun_ptr param0, struct tenkei_value param1)
 {
   cbor_item_t *args = cbor_new_definite_array(2);
   cbor_item_t *arg1 = serialize_fun_ptr(param0);

@@ -111,7 +111,7 @@ void tenkei_reverse_list(uint8_t *input, size_t input_len, uint8_t **output, siz
 cbor_item_t *cbor_apply_function(cbor_item_t *args)
 {
   cbor_item_t **arg_list = cbor_array_handle(args);
-  void (*arg0)(uint8_t *input, size_t input_len, uint8_t **output, size_t *output_len) = deserialize_fun_ptr(arg_list[0]);
+  struct tenkei_fun_ptr arg0 = deserialize_fun_ptr(arg_list[0]);
   struct tenkei_value arg1 = deserialize_tenkei_value(arg_list[1]);
   struct tenkei_value res = apply_function(arg0, arg1);
   cbor_item_t *result = serialize_tenkei_value(res);

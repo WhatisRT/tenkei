@@ -59,10 +59,10 @@ static struct list_tenkei_value reverse_list(struct list_tenkei_value l)
   return res;
 }
 
-static struct tenkei_value apply_function(void (*f)(uint8_t *, size_t, uint8_t **, size_t *), struct tenkei_value x)
+static struct tenkei_value apply_function(struct tenkei_fun_ptr f, struct tenkei_value x)
 {
   cbor_item_t *arg = cbor_new_definite_array(1);
   cbor_array_push(arg, x.contents);
-  struct tenkei_value res = {call_cbor(f, arg)};
+  struct tenkei_value res = {call_fun_ptr_cbor(f, arg)};
   return res;
 }
