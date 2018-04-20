@@ -12,8 +12,7 @@ else
 fi
 
 PACKAGE_YAML_IN="$(cat package.yaml.in)"
-HSRTS_PATH="/Library/Frameworks/GHC.framework/Versions/Current/usr/lib/ghc-8.2.2/rts"
-#HSRTS_PATH="$(echo "$(dirname "$(dirname "$(stack exec which ghc)")")"/lib/ghc-*/rts)"
+HSRTS_PATH="$(echo "$(dirname "$(dirname "$(stack exec which ghc)")")"/lib/ghc-*/rts)"
 HSRTS_LIB="$(cd "${HSRTS_PATH}"; find * -name 'libHSrts-ghc*.*.*.*' | sed 's/^lib//' | sed 's/\.[^.]*$//' | head -n1)"
 eval "echo \"${PACKAGE_YAML_IN}\"" > package.yaml
 
