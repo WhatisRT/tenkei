@@ -20,3 +20,6 @@ def choose_left(x, y):
 
 def reverse_list(l):
     return list(reversed(l))
+
+def apply_function(f, x):
+    return f(x)

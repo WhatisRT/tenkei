@@ -11,6 +11,9 @@ def print_bool(b):
 def print_list(l):
     print("[" + (''.join(str(c) + "," for c in l)[:-1] + "]"))
 
+def head(l):
+    return l[0]
+
 print("python")
 print(''.join(str(chr(e)) for e in test_library.library_language()))
 print_bool(test_library.binary_or(1, 0))
@@ -19,3 +22,4 @@ print_list(test_library.exponentiate(2,x) for x in test_list)
 print_list(test_library.identity(test_list))
 print(test_library.choose_left(1,2))
 print_list(test_library.reverse_list(test_list))
+print_list(test_library.apply_function(head, [[1,2],[3,4]]))

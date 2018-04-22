@@ -74,6 +74,7 @@ generatePythonInterface' (DefFile _ funDefs _) =
   , "                      library_dirs=['../../tenkei-build'])"
   , ""
   , "ffibuilder.cdef(\"\"\""
+  , "extern \"Python\" void tenkei_callback(void *, uint8_t *, size_t, uint8_t **, size_t *);"
   ] ++
   (funDefs >>= funDefToExportC) ++ ["\"\"\")", "", "if __name__ == \"__main__\":", "    ffibuilder.compile(verbose=True)"]
 

@@ -6,10 +6,9 @@ ffibuilder.set_source("my_plugin",
     """,
                       libraries=['test-library'],
                       library_dirs=['../../tenkei-build'])
-                      #library_dirs=['./', '/Library/Frameworks/GHC.framework/Versions/Current/usr/lib/ghc-8.2.2/rts/'],
-                      #extra_compile_args=['-arch x86_64', '-Wl,-rpath=/Library/Frameworks/GHC.framework/Versions/Current/usr/lib/ghc-8.2.2/rts/'])
 
 ffibuilder.cdef("""
+extern "Python" void tenkei_callback(void *, uint8_t *, size_t, uint8_t **, size_t *);
         void tenkei_library_language(
             uint8_t *input,
             size_t input_len,

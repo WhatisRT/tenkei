@@ -111,7 +111,7 @@ def tenkei_reverse_list(*args):
 
 @ffi.def_extern()
 def tenkei_apply_function(*args):
-    return offer(apply_function)(*args)
+    return offer_with_conversion(apply_function, 0)(*args)
 
 """ +
                                    read_file("test-library.py"))
