@@ -25,8 +25,8 @@ def call(f):
 
 def call_fun_ptr(f):
     callback = ffi.cast("void (*)(void *, uint8_t *, size_t, uint8_t **, size_t *)", f[0])
-    data = f[1]
-    free = f[2]
+    free = f[1]
+    data = f[2]
 
     def called(*args):
         args_bin = cbor2.dumps(args)

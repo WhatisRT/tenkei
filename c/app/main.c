@@ -114,13 +114,20 @@ int main(int argc, char *argv[])
 
   print_list(res5);
 
-  struct tenkei_value list4 = {serialize_list_int32_t(list)};
+  int l1_[] = {1,2};
+  int l2_[] = {3,4};
 
-  struct tenkei_value res6_ = apply_function(offer_fun_ptr_cbor(&cbor_head), list4);
+  struct list_int32_t list4_1 = {l1_, 2};
+  struct list_int32_t list4_2 = {l2_, 2};
+  struct tenkei_value list4_[] = {{serialize_list_int32_t(list4_1)}, {serialize_list_int32_t(list4_2)}};
+  struct list_tenkei_value list4 = {list4_, 2};
+  struct tenkei_value val = {serialize_list_tenkei_value(list4)};
 
-  int32_t res6 = deserialize_int32_t(res6_.contents);
+  struct tenkei_value res6_ = apply_function(offer_fun_ptr_cbor(&cbor_head), val);
 
-  //printf("%d\n", res6);
+  struct list_int32_t res6 = deserialize_list_int32_t(res6_.contents);
+
+  print_list(res6);
 
   fflush(stdout);
 }
