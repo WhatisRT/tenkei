@@ -5,6 +5,7 @@ module Generators.Python
 
 import Generators.General
 import Types
+import Data.List
 
 interfaceHeader :: [String]
 interfaceHeader =
@@ -90,5 +91,11 @@ funDefToExportC (FunDef name _ _) = indent 8
   ]
 
 funDefToExportPython :: FunDef -> [String]
-funDefToExportPython (FunDef name _ _) =
-  ["@ffi.def_extern()", "def " ++ foreignFunctionId name ++ "(*args):", "    return offer(" ++ functionId name ++ ")(*args)", ""]
+funDefToExportPython (FunDef name sources _) =
+  [ "@ffi.def_extern()"
+  , "def " ++ foreignFunctionId name ++ "(*args):"
+  , "    return offer_with_conversion(" ++ functionId name ++ ", [" ++ funPtrIndices ++ "])(*args)"
+  , ""
+  ]
+  where
+    funPtrIndices = intercalate "," $ fmap (show . snd) $ filter (isFunPtr . snd . fst) $ zip sources [0 ..]

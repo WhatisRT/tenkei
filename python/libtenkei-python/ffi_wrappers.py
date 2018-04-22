@@ -48,5 +48,6 @@ def offer_with_conversion(f, i):
         DONT_FORGET[result_ptr] += 1
     return offered
 
-def convert_args(arg_list, i):
-    arg_list[i] = call_fun_ptr(arg_list[i])
+def convert_args(arg_list, indices):
+    for i in indices:
+        arg_list[i] = call_fun_ptr(arg_list[i])

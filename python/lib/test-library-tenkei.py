@@ -83,35 +83,35 @@ def tenkei_free(buffer, buffer_len):
 
 @ffi.def_extern()
 def tenkei_library_language(*args):
-    return offer(library_language)(*args)
+    return offer_with_conversion(library_language, [])(*args)
 
 @ffi.def_extern()
 def tenkei_binary_or(*args):
-    return offer(binary_or)(*args)
+    return offer_with_conversion(binary_or, [])(*args)
 
 @ffi.def_extern()
 def tenkei_modify_array(*args):
-    return offer(modify_array)(*args)
+    return offer_with_conversion(modify_array, [])(*args)
 
 @ffi.def_extern()
 def tenkei_exponentiate(*args):
-    return offer(exponentiate)(*args)
+    return offer_with_conversion(exponentiate, [])(*args)
 
 @ffi.def_extern()
 def tenkei_identity(*args):
-    return offer(identity)(*args)
+    return offer_with_conversion(identity, [])(*args)
 
 @ffi.def_extern()
 def tenkei_choose_left(*args):
-    return offer(choose_left)(*args)
+    return offer_with_conversion(choose_left, [])(*args)
 
 @ffi.def_extern()
 def tenkei_reverse_list(*args):
-    return offer(reverse_list)(*args)
+    return offer_with_conversion(reverse_list, [])(*args)
 
 @ffi.def_extern()
 def tenkei_apply_function(*args):
-    return offer_with_conversion(apply_function, 0)(*args)
+    return offer_with_conversion(apply_function, [0])(*args)
 
 """ +
                                    read_file("test-library.py"))

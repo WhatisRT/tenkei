@@ -42,3 +42,7 @@ getTypeVars _ = []
 
 hasTypeVars :: FunDef -> Bool
 hasTypeVars (FunDef _ sources target) = any hasTypeVar (target : fmap snd sources)
+
+isFunPtr :: Type -> Bool
+isFunPtr (Unnamed (Primitive (Function _ _))) = True
+isFunPtr _ = False
