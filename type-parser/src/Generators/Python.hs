@@ -44,11 +44,7 @@ generatePythonLib' (DefFile _ funDefs _) =
      , "ffibuilder.embedding_init_code(read_file(\"../libtenkei-python/ffi_wrappers.py\") + \"\\n\\n\" +"
      ] ++
      indent 31 ["\"\"\""]) ++
-  [ "from collections import Counter"
-  , ""
-  , "DONT_FORGET=Counter()"
-  , ""
-  , "@ffi.def_extern()"
+  [ "@ffi.def_extern()"
   , "def tenkei_free(buffer, buffer_len):"
   , "    DONT_FORGET[buffer] -= 1"
   , "    if DONT_FORGET[buffer] == 0:"

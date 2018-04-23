@@ -71,10 +71,6 @@ def main():
     ffibuilder.set_source("my_plugin", "")
     ffibuilder.embedding_init_code(read_file("../libtenkei-python/ffi_wrappers.py") + "\n\n" +
                                    """
-from collections import Counter
-
-DONT_FORGET=Counter()
-
 @ffi.def_extern()
 def tenkei_free(buffer, buffer_len):
     DONT_FORGET[buffer] -= 1
