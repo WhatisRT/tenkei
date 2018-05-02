@@ -1,11 +1,11 @@
 module Main (main) where
 
+import LanguageFunctions
 import Types
 
 import Generators.C
 import Generators.Haskell
 import Generators.Python
-import Generators.Rust
 
 import Parsers.Haskell
 import Parsers.Rust
@@ -29,17 +29,16 @@ customError io f = ExceptT $ first f <$> tryIOError io
 actions :: [(String, String, ErrorIO ())]
 actions =
   [ ("help", "Print this text", help)
-  , ("interface", "Generate a tenkei interface from a library definition", generateInterface)
-  , ("library", "Generate language bindings from a library definition", generateLib)
+  , ("generate", "Generate sourcecode from a library definition", generate)
   , ("parse", "Parse sourcecode to generate a library definition", parse)
   ]
 
-languages :: [(String, (String -> Maybe DefFile, DefFile -> String, DefFile -> String))]
+languages :: [(String, (String -> Maybe DefFile, LanguageGenerators))]
 languages =
-  [ ("c", (undefined, generateCLib, generateCInterface))
-  , ("haskell", (parseHaskell, generateHaskellLib, generateHaskellInterface))
-  , ("python", (undefined, generatePythonLib, generatePythonInterface))
-  , ("rust", (parseRust, createRustFile, error "Rust tenkei library generation not yet supported!"))
+  [ ("c", (undefined, cLanguageGenerators))
+  , ("haskell", (parseHaskell, haskellLanguageGenerators))
+  , ("python", (undefined, pythonLanguageGenerators))
+  , ("rust", (parseRust, error "Rust tenkei library generation not yet supported!"))
   ]
 
 fromJustError :: Maybe a -> String -> ErrorIO a
@@ -54,7 +53,7 @@ fillRight s i
 (!!?) :: [a] -> Int -> Maybe a
 (!!?) l n = listToMaybe $ drop n l
 
-selectLanguage :: String -> ErrorIO (String -> Maybe DefFile, DefFile -> String, DefFile -> String)
+selectLanguage :: String -> ErrorIO (String -> Maybe DefFile, LanguageGenerators)
 selectLanguage lang
   | (Just translators) <- lookup lang languages = return translators
   | otherwise = throwError ("Unsupported language! Supported languages are: " ++ intercalate ", " (fst <$> languages))
@@ -68,6 +67,11 @@ main = do
   case result of
     (Left s) -> putStrLn (s ++ "\n\n") >> help'
     (Right _) -> return ()
+
+scanArg :: String -> [String] -> Maybe String
+scanArg s l | (_,b) <- break (== "--" ++ s) l = case b of
+                _:v:_ -> Just v
+                _ -> Nothing
 
 getCmd :: ErrorIO String
 getCmd = do
@@ -89,33 +93,43 @@ writeTarget :: String -> ErrorIO ()
 writeTarget contents = do
   args <- liftIO getArgs
   maybe (liftIO $ putStr contents) (\x -> customError (writeFile x contents) (\e -> "Error while writing file " ++ x ++ ":\n" ++ show e)) (args !!? 3)
+writeFileError :: String -> String -> ErrorIO ()
+writeFileError fileName contents = customError (writeFile fileName contents) (\e -> "Error while writing file " ++ fileName ++ ":\n" ++ show e)
 
-generateLib :: ErrorIO ()
-generateLib = do
-  (_, codeGen, _) <- getLang >>= selectLanguage
-  generateCode codeGen
+customArgFile :: String -> ErrorIO (Maybe String)
+customArgFile arg = do
+  args <- liftIO getArgs
+  return $ scanArg ("--" ++ arg) args
 
-generateInterface :: ErrorIO ()
-generateInterface = do
-  (_, _, codeGen) <- getLang >>= selectLanguage
-  generateCode codeGen
-
-generateCode :: (DefFile -> String) -> ErrorIO ()
-generateCode codeGen = do
+generate :: ErrorIO ()
+generate = do
   src <- getSource
   parsed <- fromJustError (decodeType src) "Error while parsing the source file!"
-  writeTarget $ codeGen parsed
+  (_, languageGenerators) <- getLang >>= selectLanguage
+  let info =
+        [(customArgFile "interface", interfaceGen languageGenerators), (customArgFile "library", libraryGen languageGenerators)] ++
+        fmap f (others languageGenerators)
+  void $ traverse (g parsed) info
+  where
+    f (a, b) = (customArgFile a, b)
+    g :: DefFile -> (ErrorIO (Maybe String), DefFile -> String) -> ErrorIO ()
+    g parsed (a, b) =
+      a >>=
+      (\x ->
+         case x of
+           Just y -> writeFileError y $ b parsed
+           Nothing -> return ()) 
 
 help :: ErrorIO ()
 help = liftIO help'
 
 help' :: IO ()
-help' = putStr $ intercalate "\n" $
-  [ "Tool for creating language bindings."
-  , "Usage: tenkei [command] [language] [source] [target]"
-  , ""
-  , "Commands:"
-  ] ++ fmap (\(c,h,_) -> printf "  %s%s" (fillRight c 10) h) actions ++ [""]
+help' =
+  putStr $
+  intercalate "\n" $
+  ["Tool for creating language bindings.", "Usage: tenkei [command] [language] [source] [args]", "", "Commands:"] ++
+  fmap (\(c, h, _) -> printf "  %s%s" (fillRight c 10) h) actions ++
+  ["", "Arguments:", "--interface: Path of the interface file", "--library: Path of the library file", ""]
 
 help2 :: ErrorIO ()
 help2 = do
@@ -125,7 +139,7 @@ help2 = do
 parse :: ErrorIO ()
 parse = do
   lang <- getLang
-  (parser, _, _) <- selectLanguage lang
+  (parser, _) <- selectLanguage lang
   src <- getSource
   parsed <- fromJustError (parser src) "Error while parsing the source file!"
   writeTarget $ generateDefFile parsed

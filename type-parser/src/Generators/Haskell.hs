@@ -1,13 +1,17 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleContexts #-}
 
-module Generators.Haskell where
+module Generators.Haskell (haskellLanguageGenerators) where
 
 import Control.Monad
 import Data.List
 import Generators.General
 import Text.Printf
 import Types
+import LanguageFunctions
+
+haskellLanguageGenerators :: LanguageGenerators
+haskellLanguageGenerators = LanguageGenerators generateHaskellInterface generateHaskellLib []
 
 libHeader :: String -> [String]
 libHeader libName =
@@ -94,7 +98,8 @@ typeToHaskell (Unnamed (Any ident)) = snakeCase ident
 typeToHaskell (Named ident) = pascalCase ident
 
 typeToHaskell' :: Type -> String
-typeToHaskell' (Unnamed (Primitive (Function s t))) = "(" ++ (intercalate " -> " $ (fmap snd s ++ [t]) >> ["TenkeiValue"]) ++ ")"
+typeToHaskell' (Unnamed (Primitive (Function s t))) = "(" ++ intercalate " -> " ((fmap snd s ++ [t]) >> ["TenkeiValue"]) ++ ")"
+
 typeToHaskell' (Unnamed (Primitive (List t))) = mconcat ["[", typeToHaskell' t, "]"]
 typeToHaskell' (Unnamed (Any _)) = "TenkeiValue"
 typeToHaskell' x = typeToHaskell x
@@ -147,7 +152,7 @@ funDefToExport f@(FunDef name sources _) =
           zipWith
             (\arg (_, argType) ->
                case argType of
-                 (Unnamed (Primitive (Function s _))) -> "(TenkeiValue . (fromFunPointer (deserialize " ++ arg ++ ")) . (\\" ++ unwords (lambdaArgs s) ++ " -> CBOR_Array [" ++ intercalate "," (fmap ("getValue " ++) $ lambdaArgs s) ++ "]))"
+                 (Unnamed (Primitive (Function s _))) -> "(TenkeiValue . (fromFunPointer (deserialize " ++ arg ++ ")) . (\\" ++ unwords (lambdaArgs s) ++ " -> CBOR_Array [" ++ intercalate "," (("getValue " ++) <$> lambdaArgs s) ++ "]))"
                  _ -> "(deserialize " ++ arg ++ ")")
             argList
             sources

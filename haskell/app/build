@@ -1,5 +1,5 @@
 #!/bin/sh -e
 stack clean
-type-parser interface haskell ../../TestLibraryDefinition src/TestLibrary.hs
+type-parser generate haskell ../../TestLibraryDefinition --interface src/TestLibrary.hs
 stack build
 cp "$(find .stack-work/dist -name 'test-exe' -type f -print -quit)" test-exe

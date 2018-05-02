@@ -1,3 +1,3 @@
 #!/bin/sh -e
-type-parser library python ../../TestLibraryDefinition test-library-tenkei.py
+type-parser generate python ../../TestLibraryDefinition --library test-library-tenkei.py
 python3 test-library-tenkei.py

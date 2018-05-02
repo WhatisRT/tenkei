@@ -1,11 +1,14 @@
 module Generators.Python
-  ( generatePythonLib
-  , generatePythonInterface
+  ( pythonLanguageGenerators
   ) where
 
 import Generators.General
 import Types
+import LanguageFunctions
 import Data.List
+
+pythonLanguageGenerators :: LanguageGenerators
+pythonLanguageGenerators = LanguageGenerators generatePythonInterface generatePythonLib []
 
 interfaceHeader :: [String]
 interfaceHeader =

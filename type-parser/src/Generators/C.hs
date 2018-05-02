@@ -1,12 +1,16 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleContexts #-}
 
-module Generators.C (generateCInterface, generateCLib) where
+module Generators.C (cLanguageGenerators) where
 
 import Control.Monad
 import Data.List
 import Generators.General
 import Types
+import LanguageFunctions
+
+cLanguageGenerators :: LanguageGenerators
+cLanguageGenerators = LanguageGenerators generateCLib generateCInterface []
 
 typeId :: Identifier -> String
 typeId = snakeCase
