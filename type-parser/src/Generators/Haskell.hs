@@ -11,7 +11,7 @@ import Types
 import LanguageFunctions
 
 haskellLanguageGenerators :: LanguageGenerators
-haskellLanguageGenerators = LanguageGenerators generateHaskellInterface generateHaskellLib []
+haskellLanguageGenerators = LanguageGenerators generateHaskellLib generateHaskellInterface []
 
 libHeader :: String -> [String]
 libHeader libName =

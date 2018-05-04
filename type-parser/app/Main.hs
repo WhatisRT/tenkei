@@ -93,13 +93,15 @@ writeTarget :: String -> ErrorIO ()
 writeTarget contents = do
   args <- liftIO getArgs
   maybe (liftIO $ putStr contents) (\x -> customError (writeFile x contents) (\e -> "Error while writing file " ++ x ++ ":\n" ++ show e)) (args !!? 3)
+
 writeFileError :: String -> String -> ErrorIO ()
-writeFileError fileName contents = customError (writeFile fileName contents) (\e -> "Error while writing file " ++ fileName ++ ":\n" ++ show e)
+writeFileError fileName contents =
+  customError (writeFile fileName contents) (\e -> "Error while writing file " ++ fileName ++ ":\n" ++ show e)
 
 customArgFile :: String -> ErrorIO (Maybe String)
 customArgFile arg = do
   args <- liftIO getArgs
-  return $ scanArg ("--" ++ arg) args
+  return $ scanArg arg args
 
 generate :: ErrorIO ()
 generate = do
@@ -107,18 +109,18 @@ generate = do
   parsed <- fromJustError (decodeType src) "Error while parsing the source file!"
   (_, languageGenerators) <- getLang >>= selectLanguage
   let info =
-        [(customArgFile "interface", interfaceGen languageGenerators), (customArgFile "library", libraryGen languageGenerators)] ++
-        fmap f (others languageGenerators)
-  void $ traverse (g parsed) info
+        [(customArgFile "interface", interfaceGen languageGenerators parsed), (customArgFile "library", libraryGen languageGenerators parsed)] ++
+        fmap (f parsed) (others languageGenerators)
+  void $ traverse g info
   where
-    f (a, b) = (customArgFile a, b)
-    g :: DefFile -> (ErrorIO (Maybe String), DefFile -> String) -> ErrorIO ()
-    g parsed (a, b) =
+    f parsed (a, b) = (customArgFile a, b parsed)
+    g :: (ErrorIO (Maybe String), String) -> ErrorIO ()
+    g (a, b) =
       a >>=
       (\x ->
          case x of
-           Just y -> writeFileError y $ b parsed
-           Nothing -> return ()) 
+           Just y -> writeFileError y b
+           Nothing -> return ())
 
 help :: ErrorIO ()
 help = liftIO help'
