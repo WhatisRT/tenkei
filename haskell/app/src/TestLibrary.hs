@@ -14,7 +14,7 @@ import Tenkei
 foreign import ccall "tenkei_free" tenkei_free :: Ptr Word8 -> CSize -> IO ()
 
 foreign import ccall "tenkei_library_language" foreign_tenkei_library_language :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
-libraryLanguage :: [Int32]
+libraryLanguage :: [Char]
 libraryLanguage  = unsafePerformIO $ do
   return $ deserialize $ callCBOR foreign_tenkei_library_language tenkei_free $ CBOR_Array []
 

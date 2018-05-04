@@ -6,7 +6,7 @@
 
 void tenkei_free(uint8_t *, size_t);
 
-struct list_int32_t library_language();
+struct list_uint32_t library_language();
 
 bool binary_or(bool, bool);
 

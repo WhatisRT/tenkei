@@ -6,6 +6,11 @@ struct list_int32_t {
   unsigned int length;
 };
 
+struct list_uint32_t {
+  uint32_t *start;
+  unsigned int length;
+};
+
 struct list_tenkei_ptr {
   void * *start;
   unsigned int length;

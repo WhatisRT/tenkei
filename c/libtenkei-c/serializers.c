@@ -53,6 +53,16 @@ int32_t deserialize_int32_t(const cbor_item_t *cbor)
   return (int32_t)cbor_get_int(cbor);
 }
 
+cbor_item_t *serialize_uint32_t(const uint32_t i)
+{
+  return cbor_build_uint32(i);
+}
+
+uint32_t deserialize_uint32_t(const cbor_item_t *cbor)
+{
+  return (uint32_t)cbor_get_int(cbor);
+}
+
 cbor_item_t *serialize_tenkei_ptr(const void *i)
 {
   return cbor_build_uint64((size_t) i);

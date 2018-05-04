@@ -5,10 +5,10 @@
 //#include "../libtenkei-c/ffi_wrappers.h"
 #include "../common/list_types.h"
 
-static struct list_int32_t library_language(void)
+static struct list_uint32_t library_language(void)
 {
-  int32_t *list_ = malloc(sizeof(int32_t) * 1);
-  struct list_int32_t res = {list_, 1};
+  uint32_t *list_ = malloc(sizeof(uint32_t) * 1);
+  struct list_uint32_t res = {list_, 1};
   list_[0] = 99;
 
   return res;

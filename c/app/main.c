@@ -14,7 +14,7 @@ void print_list(const struct list_int32_t l)
   fflush(stdout);
 }
 
-void print_list_char(const struct list_int32_t l)
+void print_list_char(const struct list_uint32_t l)
 {
   for(int i = 0; i < l.length; i++)
     printf("%c", (char)l.start[i]);

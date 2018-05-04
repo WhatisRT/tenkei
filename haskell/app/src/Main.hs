@@ -8,7 +8,7 @@ main :: IO ()
 main = putStr $ intercalate
     "\n"
     [ "haskell"
-    , showLang libraryLanguage
+    , libraryLanguage
     , show $ binaryOr True False
     , show $ modifyArray [1 .. 10]
     , show $ fmap (exponentiate 2) [1 .. 10]
@@ -18,6 +18,3 @@ main = putStr $ intercalate
     , show $ applyFunction head ([[1,2], [2,3]] :: [[Int32]])
     , ""
     ]
-
-showLang :: [Int32] -> String
-showLang = fmap (toEnum . fromIntegral)

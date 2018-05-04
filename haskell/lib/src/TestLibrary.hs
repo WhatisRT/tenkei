@@ -11,8 +11,8 @@ module TestLibrary
 
 import Data.Int
 
-libraryLanguage :: [Int32]
-libraryLanguage = fmap (fromIntegral . fromEnum) "haskell"
+libraryLanguage :: [Char]
+libraryLanguage = "haskell"
 
 binaryOr :: Bool -> Bool -> Bool
 binaryOr = (||)

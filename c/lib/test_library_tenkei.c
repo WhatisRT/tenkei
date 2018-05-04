@@ -11,8 +11,8 @@ void tenkei_free(uint8_t *arg, size_t len)
 cbor_item_t *cbor_library_language(cbor_item_t *args)
 {
   cbor_item_t **arg_list = cbor_array_handle(args);
-  struct list_int32_t res = library_language();
-  cbor_item_t *result = serialize_list_int32_t(res);
+  struct list_uint32_t res = library_language();
+  cbor_item_t *result = serialize_list_uint32_t(res);
   return result;
 };
 

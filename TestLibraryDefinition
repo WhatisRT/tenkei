@@ -22,7 +22,7 @@
                             "contents": {
                                 "tag": "Primitive",
                                 "contents": {
-                                    "tag": "Int32"
+                                    "tag": "CodepointUnicode"
                                 }
                             }
                         }

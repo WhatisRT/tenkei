@@ -11,11 +11,11 @@ extern void tenkei_identity(uint8_t *input, size_t input_len, uint8_t **output, 
 extern void tenkei_choose_left(uint8_t *input, size_t input_len, uint8_t **output, size_t *output_len);
 extern void tenkei_reverse_list(uint8_t *input, size_t input_len, uint8_t **output, size_t *output_len);
 extern void tenkei_apply_function(uint8_t *input, size_t input_len, uint8_t **output, size_t *output_len);
-struct list_int32_t library_language()
+struct list_uint32_t library_language()
 {
   cbor_item_t *args = cbor_new_definite_array(0);
   cbor_item_t *res = call_cbor(tenkei_library_language, args);
-  struct list_int32_t result = deserialize_list_int32_t(res);
+  struct list_uint32_t result = deserialize_list_uint32_t(res);
   cbor_decref(&args);
   return result;
 }
