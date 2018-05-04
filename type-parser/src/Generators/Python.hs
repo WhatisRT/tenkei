@@ -8,7 +8,7 @@ import LanguageFunctions
 import Data.List
 
 pythonLanguageGenerators :: LanguageGenerators
-pythonLanguageGenerators = LanguageGenerators generatePythonInterface generatePythonLib []
+pythonLanguageGenerators = LanguageGenerators generatePythonLib generatePythonInterface [("c-interface", generatePythonCInterface)]
 
 interfaceHeader :: [String]
 interfaceHeader =
@@ -64,6 +64,45 @@ generatePythonInterface = unlines . generatePythonInterface'
 
 generatePythonInterface' :: DefFile -> [String]
 generatePythonInterface' (DefFile _ funDefs _) =
+  [ "from my_plugin import ffi, lib"
+  , "import sys"
+  , "sys.path.append(\"../python/libtenkei-python\")"
+  , "from ffi_wrappers import call, offer"
+  , ""
+  , "FUN_POINTERS=[]"
+  , "callback_address = int(ffi.cast(\"uintptr_t\", lib.tenkei_callback))"
+  , ""
+  , "def fun_to_fun_ptr(f):"
+  , "    # handle = ffi.new_handle(f)"
+  , "    # FUN_POINTERS.append(handle)"
+  , "    FUN_POINTERS.append(f)"
+  , ""
+  , "    return [callback_address, 0, len(FUN_POINTERS) - 1]"
+  , ""
+  , "def call_with_conversion(f, indices, arg_list):"
+  , "    for i in indices:"
+  , "        arg_list[i] = fun_to_fun_ptr(arg_list[i])"
+  , ""
+  , "    return call(f)(*arg_list)"
+  , ""
+  , "@ffi.def_extern()"
+  , "def tenkei_callback(data, *args):"
+  , "    f = FUN_POINTERS[int(ffi.cast(\"uintptr_t\", data))]"
+  , "    return offer(f)(*args)"
+  , ""
+  ] ++ (funDefs >>= pythonFunctionWrapper)
+
+pythonFunctionWrapper :: FunDef -> [String]
+pythonFunctionWrapper (FunDef name sources _) =
+  ["def " ++ functionId name ++ "(*args):", "    return call_with_conversion(lib.tenkei_" ++ functionId name ++ ", " ++ show funPtrIndices ++ ", list(args))", ""]
+  where
+    funPtrIndices = fmap snd $ filter (isFunPtr . snd . fst) $ zip sources [0 ..]
+
+generatePythonCInterface :: DefFile -> String
+generatePythonCInterface = unlines . generatePythonCInterface'
+
+generatePythonCInterface' :: DefFile -> [String]
+generatePythonCInterface' (DefFile _ funDefs _) =
   [ "from cffi import FFI"
   , "ffibuilder = FFI()"
   , ""

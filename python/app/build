@@ -1,4 +1,4 @@
 #!/bin/sh -e
-type-parser generate python ../../TestLibraryDefinition --interface main.py
+type-parser generate python ../../TestLibraryDefinition --interface test_library.py --c-interface main.py
 python3 main.py
 cp test-exe-template test-exe
