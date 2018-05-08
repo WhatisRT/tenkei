@@ -36,19 +36,19 @@ static int32_t exponentiate(int32_t x, int32_t y)
   return acc;
 }
 
-static struct tenkei_value identity(struct tenkei_value x)
+template <typename T> static T identity(T x)
 {
   return x;
 }
 
-static struct tenkei_value choose_left(struct tenkei_value l, struct tenkei_value r)
+template <typename T, typename U> static T choose_left(T l, U r)
 {
   return l;
 }
 
-static std::vector<tenkei_value> reverse_list(std::vector<tenkei_value> l)
+template <typename T> static std::vector<T> reverse_list(std::vector<T> l)
 {
-  std::vector<tenkei_value> res(l.size());
+  std::vector<T> res(l.size());
 
   for(int i = 0; i < l.size(); i++)
     res[i] = l[l.size() - i - 1];
@@ -56,7 +56,7 @@ static std::vector<tenkei_value> reverse_list(std::vector<tenkei_value> l)
   return res;
 }
 
-static struct tenkei_value apply_function(struct tenkei_fun_ptr f, struct tenkei_value x)
+template <typename T, typename U> static struct tenkei_value apply_function(struct tenkei_fun_ptr f, struct tenkei_value x)
 {
   cbor_item_t *arg = cbor_new_definite_array(1);
   cbor_array_push(arg, x.contents);

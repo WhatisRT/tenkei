@@ -68,7 +68,7 @@ cbor_item_t *cbor_identity(cbor_item_t *args)
 {
   cbor_item_t **arg_list = cbor_array_handle(args);
   struct tenkei_value arg0 = deserialize<tenkei_value>(arg_list[0]);
-  struct tenkei_value res = identity(arg0);
+  struct tenkei_value res = identity<tenkei_value>(arg0);
   cbor_item_t *result = serialize(res);
   return result;
 };
@@ -83,7 +83,7 @@ cbor_item_t *cbor_choose_left(cbor_item_t *args)
   cbor_item_t **arg_list = cbor_array_handle(args);
   struct tenkei_value arg0 = deserialize<tenkei_value>(arg_list[0]);
   struct tenkei_value arg1 = deserialize<tenkei_value>(arg_list[1]);
-  struct tenkei_value res = choose_left(arg0, arg1);
+  struct tenkei_value res = choose_left<tenkei_value, tenkei_value>(arg0, arg1);
   cbor_item_t *result = serialize(res);
   return result;
 };
@@ -97,7 +97,7 @@ cbor_item_t *cbor_reverse_list(cbor_item_t *args)
 {
   cbor_item_t **arg_list = cbor_array_handle(args);
   std::vector<tenkei_value> arg0 = deserialize<std::vector<tenkei_value>>(arg_list[0]);
-  std::vector<tenkei_value> res = reverse_list(arg0);
+  std::vector<tenkei_value> res = reverse_list<tenkei_value>(arg0);
   cbor_item_t *result = serialize(res);
   return result;
 };
@@ -112,7 +112,7 @@ cbor_item_t *cbor_apply_function(cbor_item_t *args)
   cbor_item_t **arg_list = cbor_array_handle(args);
   struct tenkei_fun_ptr arg0 = deserialize<tenkei_fun_ptr>(arg_list[0]);
   struct tenkei_value arg1 = deserialize<tenkei_value>(arg_list[1]);
-  struct tenkei_value res = apply_function(arg0, arg1);
+  struct tenkei_value res = apply_function<tenkei_value, tenkei_value>(arg0, arg1);
   cbor_item_t *result = serialize(res);
   return result;
 };

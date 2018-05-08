@@ -102,19 +102,29 @@ variableToCpp (name, t) = typeToCpp t ++ " " ++ variableId name
 funDefToExport :: FunDef -> [String]
 funDefToExport (FunDef name sources target) =
   ["cbor_item_t *cbor_" ++ functionId name ++ "(cbor_item_t *args)", "{"] ++
-  indent 1
+  indent
+    1
     (["cbor_item_t **arg_list = cbor_array_handle(args);"] ++
      zipWith deserializeArg ([0 ..] :: [Int]) (fmap snd sources) ++
-     [ typeToCpp target ++ " res = " ++ functionId name ++ "(" ++ intercalate ", " argList ++ ");"
+     [ typeToCpp target ++ " res = " ++ functionId name ++ funTemplates ++ "(" ++ intercalate ", " argList ++ ");"
      , "cbor_item_t *result = serialize(res);"
      , "return result;"
      ]) ++
-  ["};", "", "extern \"C\" void tenkei_" ++ functionId name ++ "(uint8_t *input, size_t input_len, uint8_t **output, size_t *output_len)", "{"] ++
+  [ "};"
+  , ""
+  , "extern \"C\" void tenkei_" ++ functionId name ++ "(uint8_t *input, size_t input_len, uint8_t **output, size_t *output_len)"
+  , "{"
+  ] ++
   indent 1 ["offer_cbor(cbor_" ++ functionId name ++ ", input, input_len, output, output_len);"] ++ ["}", ""]
   where
+    typeVariables = nub $ (target : fmap snd sources) >>= getTypeVars
+    funTemplates =
+      if null typeVariables
+        then []
+        else "<" ++ intercalate ", " (typeVariables >> ["tenkei_value"]) ++ ">"
     argList = fmap (("arg" ++) . show) [0 .. length sources - 1]
     deserializeArg index argType =
-        typeToCpp argType ++ " arg" ++ show index ++ " = deserialize<" ++ typeToSerializer argType ++ ">(arg_list[" ++ show index ++ "]);"
+      typeToCpp argType ++ " arg" ++ show index ++ " = deserialize<" ++ typeToSerializer argType ++ ">(arg_list[" ++ show index ++ "]);"
 
 funDefToLibImport :: FunDef -> [String]
 funDefToLibImport (FunDef name _ _) =
