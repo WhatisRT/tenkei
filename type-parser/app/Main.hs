@@ -4,6 +4,7 @@ import LanguageFunctions
 import Types
 
 import Generators.C
+import Generators.Cpp
 import Generators.Haskell
 import Generators.Python
 
@@ -36,6 +37,7 @@ actions =
 languages :: [(String, (String -> Maybe DefFile, LanguageGenerators))]
 languages =
   [ ("c", (undefined, cLanguageGenerators))
+  , ("cpp", (undefined, cppLanguageGenerators))
   , ("haskell", (parseHaskell, haskellLanguageGenerators))
   , ("python", (undefined, pythonLanguageGenerators))
   , ("rust", (parseRust, error "Rust tenkei library generation not yet supported!"))

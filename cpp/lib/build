@@ -1,0 +1,6 @@
+#!/bin/sh -e
+type-parser generate cpp ../../TestLibraryDefinition --library test_library_tenkei.cpp
+if [ ! -e CMakeCache.txt ]; then
+	cmake .
+fi
+cmake --build .
