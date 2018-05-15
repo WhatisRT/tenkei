@@ -24,14 +24,16 @@ import Data.ByteString.Lazy.Char8 (pack, unpack)
 import GHC.Generics
 
 type Identifier = [String]
+type Variable = (Identifier, Type)
 
-data NamedTypeDef = NamedTypeDef
+data NamedTypeDef = NamedTypeDef -- definition of a type
   { typeName :: Identifier
+  , typeVariables :: [Identifier]
   , parts :: NamedType
   } deriving (Eq, Generic, Show)
 
-data Type
-  = Named Identifier
+data Type -- reference to a type
+  = Named Identifier [Type]
   | Unnamed UnnamedType
   deriving (Eq, Generic, Show)
 
@@ -45,8 +47,6 @@ data UnnamedType
   = Any Identifier
   | Primitive PrimitiveType
   deriving (Eq, Generic, Show)
-
-type Variable = (Identifier, Type)
 
 data PrimitiveType
   = Unit
@@ -87,7 +87,7 @@ generateDefFile :: DefFile -> String
 generateDefFile = unpack . encodePretty
 
 instance ToJSON NamedTypeDef where
-  toJSON x = object ["name" .= typeName x, partsType .= parts x]
+  toJSON x = object ["name" .= typeName x, "variables" .= typeVariables x, partsType .= parts x]
     where
       partsType =
         case parts x of
@@ -101,13 +101,13 @@ instance ToJSON NamedType where
   toJSON Opaque = toJSON ([] :: [String])
 
 instance FromJSON NamedTypeDef where
-  parseJSON = withObject "TypeDef" $ \v -> toTypeDef <$> v .: "name" <*> v .:? "sumParts" <*> v .:? "prodParts" <*> v .:? "opaque"
+  parseJSON = withObject "TypeDef" $ \v -> toTypeDef <$> v .: "name" <*> v .: "variables" <*> v .:? "sumParts" <*> v .:? "prodParts" <*> v .:? "opaque"
 
-toTypeDef :: Identifier -> Maybe [(Identifier, Type)] -> Maybe [(Identifier, Type)] -> Maybe [(Identifier, Type)] -> NamedTypeDef
-toTypeDef name (Just x) _ _ = NamedTypeDef name $ SumParts x
-toTypeDef name _ (Just x) _ = NamedTypeDef name $ ProdParts x
-toTypeDef name _ _ (Just _) = NamedTypeDef name Opaque
-toTypeDef _ _ _ _ = error "Unable to parse JSON"
+toTypeDef :: Identifier -> [Identifier] -> Maybe [(Identifier, Type)] -> Maybe [(Identifier, Type)] -> Maybe [(Identifier, Type)] -> NamedTypeDef
+toTypeDef name variables (Just x) _ _ = NamedTypeDef name variables $ SumParts x
+toTypeDef name variables _ (Just x) _ = NamedTypeDef name variables $ ProdParts x
+toTypeDef name variables _ _ (Just _) = NamedTypeDef name variables Opaque
+toTypeDef _ _ _ _ _ = error "Unable to parse JSON"
 
 instance FromJSON FunDef
 

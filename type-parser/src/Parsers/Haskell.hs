@@ -63,19 +63,19 @@ moduleDef = do
 
 primitiveType :: Parser PrimitiveType
 primitiveType =
-  (try $ symbol "()" >> return Unit) <|>
-  (try $ symbol "Bool" >> return Bool) <|>
-  (try $ symbol "Int8" >> return Int8) <|>
-  (try $ symbol "Int16" >> return Int16) <|>
-  (try $ string "Int32" >> return Int32) <|>
-  (try $ string "Int64" >> return Int64) <|>
-  (try $ symbol "UInt8" >> return UInt8) <|>
-  (try $ symbol "UInt16" >> return UInt16) <|>
-  (try $ string "UInt32" >> return UInt32) <|>
-  (try $ string "UInt64" >> return UInt64) <|>
-  (try $ string "Char" >> return CodepointUnicode) <|>
-  (try $ List <$> brackets typeParser) <|>
-  (try $ parens functionTypeParser)
+  try (symbol "()" >> return Unit) <|>
+  try (symbol "Bool" >> return Bool) <|>
+  try (symbol "Int8" >> return Int8) <|>
+  try (symbol "Int16" >> return Int16) <|>
+  try (symbol "Int32" >> return Int32) <|>
+  try (symbol "Int64" >> return Int64) <|>
+  try (symbol "UInt8" >> return UInt8) <|>
+  try (symbol "UInt16" >> return UInt16) <|>
+  try (symbol "UInt32" >> return UInt32) <|>
+  try (symbol "UInt64" >> return UInt64) <|>
+  try (symbol "Char" >> return CodepointUnicode) <|>
+  try (List <$> brackets typeParser) <|>
+  try (parens functionTypeParser)
 
 functionTypeParser :: Parser PrimitiveType
 functionTypeParser = do
@@ -83,7 +83,13 @@ functionTypeParser = do
   return $ Function (augmentParameters $ init types) $ last types
 
 typeParser :: Parser Type
-typeParser = ((Unnamed . Primitive) <$> primitiveType) <|> ((Unnamed . Any) <$> snakeCaseIdentifier) <|> fmap Named pascalCaseIdentifier
+typeParser = ((Unnamed . Primitive) <$> primitiveType) <|> ((Unnamed . Any) <$> snakeCaseIdentifier) <|> namedTypeParser
+
+namedTypeParser :: Parser Type
+namedTypeParser = do
+  name <- lexeme pascalCaseIdentifier
+  arguments <- many $ lexeme typeParser
+  return $ Named name arguments
 
 augmentParameters :: [Type] -> [Variable]
 augmentParameters [type_] = [(["param"], type_)]
@@ -119,9 +125,10 @@ typeDef :: Parser NamedTypeDef
 typeDef = do
   _ <- lexeme (symbol "data")
   name <- lexeme pascalCaseIdentifier
+  variables <- many snakeCaseIdentifier
   _ <- lexeme (symbol "=")
   parts <- try typePartsProduct <|> typePartsSum
-  return $ NamedTypeDef name parts
+  return $ NamedTypeDef name variables parts
 
 lineEnd :: Parser ()
 lineEnd = eof <|> void eol

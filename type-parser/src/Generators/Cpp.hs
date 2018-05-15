@@ -64,7 +64,7 @@ generateCppInterface' (DefFile _ funDefs typeDefs) =
     requiredTypes = nub $ funDefs >>= types
 
 typeToCpp :: Type -> String
-typeToCpp (Named ident) = "struct " ++ typeId ident
+typeToCpp (Named ident args) = "struct " ++ typeId ident
 typeToCpp t@(Unnamed (Primitive (Function _ _))) = "struct " ++ typeToCpp' t
 typeToCpp (Unnamed (Any _)) = "struct tenkei_value"
 typeToCpp x = typeToCpp' x
@@ -88,7 +88,7 @@ typeToCpp' (Unnamed (Primitive StringUTF8)) = "String"
 typeToCpp' (Unnamed (Primitive (List t))) = "std::vector<" ++ typeToCpp' t ++ ">"
 typeToCpp' (Unnamed (Primitive (Function _ _))) = "tenkei_fun_ptr"
 typeToCpp' (Unnamed (Any _)) = "tenkei_value"
-typeToCpp' (Named ident) = typeId ident
+typeToCpp' (Named ident args) = typeId ident
 
 typeToSerializer :: Type -> String
 typeToSerializer = typeToCpp'

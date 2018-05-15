@@ -100,7 +100,7 @@ functionIdent = snakeCase
 variableIdent = snakeCase
 
 typeIdent :: Type -> String
-typeIdent (Named c) = namedTypeIdent c
+typeIdent (Named c args) = namedTypeIdent c
 typeIdent (Unnamed (Primitive p)) = primitive p
 typeIdent (Unnamed (Any _)) = "Any"
 
@@ -148,11 +148,11 @@ typeHeader :: [String]
 typeHeader = ["#[derive(Deserialize, Serialize)]"]
 
 typeDefImpl :: NamedTypeDef -> [String]
-typeDefImpl (NamedTypeDef name (SumParts parts)) =
+typeDefImpl (NamedTypeDef name args (SumParts parts)) =
   [printf "pub enum %s {" $ namedTypeIdent name] ++ fmap (\(n, t) -> printf "    %s(%s)," (namedTypeIdent n) (typeIdent t)) parts ++ ["}"]
-typeDefImpl (NamedTypeDef name (ProdParts parts)) =
-  [printf "pub struct %s {" $ namedTypeIdent name] ++ fmap (\(n, t) -> printf "    %s," (variable $ (n, t))) parts ++ ["}"]
-typeDefImpl (NamedTypeDef name Opaque) = [printf "pub struct %s(usize);" $ namedTypeIdent name]
+typeDefImpl (NamedTypeDef name args (ProdParts parts)) =
+  [printf "pub struct %s {" $ namedTypeIdent name] ++ fmap (\(n, t) -> printf "    %s," (variable (n, t))) parts ++ ["}"]
+typeDefImpl (NamedTypeDef name args Opaque) = [printf "pub struct %s(usize);" $ namedTypeIdent name]
 
 typeDef :: NamedTypeDef -> [String]
 typeDef = (typeHeader ++) . typeDefImpl

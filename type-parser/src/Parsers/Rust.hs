@@ -19,9 +19,9 @@ parseRust :: String -> Maybe DefFile
 parseRust s = do
   blocks <- rightToMaybe $ parse (many codeBlock) "Rust code" s
   --moduleName <- listToMaybe $ rights $ fmap (parse moduleDef "Type definitions") blocks
-  moduleName <- return ["test", "module"]
-  typeDefs <- return $ rights $ fmap (parse typeDef "Type definitions") [h ++ b | (MultiLinePub h b) <- blocks]
-  funDefs <- return $ rights $ fmap (parse function "Function definitions") [h | (MultiLinePub h _) <- blocks]
+  let moduleName = ["test", "module"]
+  let typeDefs = rights $ fmap (parse typeDef "Type definitions") [h ++ b | (MultiLinePub h b) <- blocks]
+  let funDefs = rights $ fmap (parse function "Function definitions") [h | (MultiLinePub h _) <- blocks]
   return $ DefFile moduleName funDefs typeDefs
 
 spaceConsumer :: Parser ()
@@ -49,10 +49,10 @@ moduleDef = do
   return moduleName
  -}
 primitiveType :: Parser PrimitiveType
-primitiveType = (string "i32" >> return Int32)
+primitiveType = string "i32" >> return Int32
 
 typeParser :: Parser Type
-typeParser = ((Unnamed . Primitive) <$> try primitiveType) <|> fmap Named snakeCaseIdentifier
+typeParser = ((Unnamed . Primitive) <$> try primitiveType) <|> fmap (\x -> Named x []) snakeCaseIdentifier
 
 qualifiedTypeParser1 :: Parser (Identifier, Type)
 qualifiedTypeParser1 = do
@@ -81,14 +81,14 @@ typePartsSum = do
   _ <- symbol "enum"
   name <- lexeme pascalCaseIdentifier
   parts <- braces $ sepEndBy1 qualifiedTypeParser2 $ symbol ","
-  return $ NamedTypeDef name $ SumParts parts
+  return $ NamedTypeDef name [] $ SumParts parts
 
 typePartsProduct :: Parser NamedTypeDef
 typePartsProduct = do
   _ <- symbol "struct"
   name <- lexeme pascalCaseIdentifier
   parts <- braces $ sepEndBy1 qualifiedTypeParser1 $ symbol ","
-  return $ NamedTypeDef name $ ProdParts parts
+  return $ NamedTypeDef name [] $ ProdParts parts
 
 typeDef :: Parser NamedTypeDef
 typeDef = try typePartsProduct <|> typePartsSum

@@ -28,7 +28,7 @@ allCapsWord :: Parser String
 allCapsWord = fmap toLower <$> many allowedCharacterUpper
 
 pascalCaseIdentifier :: Parser Identifier
-pascalCaseIdentifier = many upperWord
+pascalCaseIdentifier = some upperWord
 
 camelCaseIdentifier :: Parser Identifier
 camelCaseIdentifier = do

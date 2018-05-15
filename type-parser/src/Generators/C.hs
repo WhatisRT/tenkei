@@ -64,7 +64,7 @@ generateCInterface' (DefFile _ funDefs typeDefs) =
     requiredTypes = nub $ funDefs >>= types
 
 typeToC :: Type -> String
-typeToC (Named ident) = "struct " ++ typeId ident
+typeToC (Named ident args) = "struct " ++ typeId ident
 typeToC (Unnamed (Primitive (List t))) = "struct list_" ++ typeToC' t
 typeToC t@(Unnamed (Primitive (Function _ _))) = "struct " ++ typeToC' t
 typeToC (Unnamed (Any _)) = "struct tenkei_value"
@@ -89,7 +89,7 @@ typeToC' (Unnamed (Primitive StringUTF8)) = "String"
 typeToC' (Unnamed (Primitive (List t))) = "list_" ++ typeToC' t
 typeToC' (Unnamed (Primitive (Function _ _))) = "tenkei_fun_ptr"
 typeToC' (Unnamed (Any _)) = "tenkei_value"
-typeToC' (Named ident) = typeId ident
+typeToC' (Named ident args) = typeId ident
 
 typeToSerializer :: Type -> String
 typeToSerializer (Unnamed (Primitive (Function _ _))) = "fun_ptr"

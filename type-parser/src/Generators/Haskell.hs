@@ -95,13 +95,16 @@ typeToHaskell (Unnamed (Primitive (Function sources target))) =
   mconcat ["(", intercalate " -> " $ typeToHaskell <$> fmap snd sources ++ [target], ")"]
 typeToHaskell (Unnamed (Primitive (List t))) = mconcat ["[", typeToHaskell t, "]"]
 typeToHaskell (Unnamed (Any ident)) = snakeCase ident
-typeToHaskell (Named ident) = pascalCase ident
+typeToHaskell (Named ident []) = pascalCase ident
+typeToHaskell (Named ident args) = "(" ++ pascalCase ident ++ " " ++ unwords (fmap typeToHaskell args) ++ ")"
 
+-- substitute type variables with TenkeiValue
 typeToHaskell' :: Type -> String
 typeToHaskell' (Unnamed (Primitive (Function s t))) = "(" ++ intercalate " -> " ((fmap snd s ++ [t]) >> ["TenkeiValue"]) ++ ")"
-
 typeToHaskell' (Unnamed (Primitive (List t))) = mconcat ["[", typeToHaskell' t, "]"]
 typeToHaskell' (Unnamed (Any _)) = "TenkeiValue"
+typeToHaskell' (Named ident []) = pascalCase ident
+typeToHaskell' (Named ident args) = "(" ++ pascalCase ident ++ " " ++ unwords (fmap typeToHaskell' args) ++ ")"
 typeToHaskell' x = typeToHaskell x
 
 generateFunSignature :: FunDef -> (Type -> String) -> Bool -> String
@@ -208,10 +211,10 @@ funDefToImport f@(FunDef name sources target) =
             else ["let ", argName, "' = ", argName]
 
 typeDefToText :: NamedTypeDef -> [String]
-typeDefToText (NamedTypeDef name (SumParts parts)) =
+typeDefToText (NamedTypeDef name args (SumParts parts)) =
   [printf "data %s = %s" (typeId name) $ intercalate " | " $ fmap (\(n, t) -> typeId n ++ " " ++ typeToHaskell t) parts]
-typeDefToText (NamedTypeDef name (ProdParts parts)) =
+typeDefToText (NamedTypeDef name args (ProdParts parts)) =
   [ printf "data %s = %s { %s }" (typeId name) (typeId name) $
     intercalate ", " $ fmap (\(n, t) -> functionId n ++ " :: " ++ typeToHaskell t) parts
   ]
-typeDefToText (NamedTypeDef name Opaque) = [printf "data %s = Opaque%s Integer" (typeId name) (typeId name)]
+typeDefToText (NamedTypeDef name args Opaque) = [printf "data %s = Opaque%s Integer" (typeId name) (typeId name)]
