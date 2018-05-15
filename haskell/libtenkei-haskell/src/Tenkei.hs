@@ -87,6 +87,8 @@ instance Tenkei a => Tenkei [a] where
   deserialize (CBOR_Array a) = fmap deserialize a
   deserialize x = error ("Error while interpreting CBOR: not an array:\n" ++ show x)
 
+instance Tenkei a => Tenkei (Maybe a)
+
 serializeS :: All2 Tenkei xss => Integer -> SOP I xss -> CBOR
 serializeS layer (SOP (Z xs)) = CBOR_Array [CBOR_UInt layer, CBOR_Array $ serializeP xs]
 serializeS layer (SOP (S xss)) = serializeS (layer + 1) $ SOP xss
