@@ -1,0 +1,30 @@
+name:                tree-lib
+version:             0.1.0.0
+
+# Metadata used when publishing your package
+# synopsis:            Short description of your package
+# category:            Web
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description:         Please see the README on GitHub at <https://github.com/githubuser/tree-lib#readme>
+
+dependencies:
+- base >= 4.7 && < 5
+- CBOR
+- generics-sop
+- binary
+- bytestring
+- bytestring-conversion
+
+library:
+  source-dirs:
+    - src
+    - ../../../haskell/libtenkei-haskell/src
+  c-sources:
+  - src/haskell_init.c
+  extra-lib-dirs:
+  - /home/test/.stack/programs/x86_64-linux/ghc-nopie-8.2.2/lib/ghc-8.2.2/rts
+  extra-libraries:
+  - HSrts-ghc8.2.2

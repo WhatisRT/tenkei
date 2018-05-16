@@ -1,0 +1,108 @@
+{
+    "typeDefs": [],
+    "libName": [
+        "tree"
+    ],
+    "funDefs": [
+        {
+            "funName": [
+                "flatten"
+            ],
+            "sources": [
+                [
+                    [
+                        "param"
+                    ],
+                    {
+                        "tag": "Named",
+                        "contents": [
+                            [
+                                "tree"
+                            ],
+                            [
+                                {
+                                    "tag": "Unnamed",
+                                    "contents": {
+                                        "tag": "Any",
+                                        "contents": [
+                                            "a"
+                                        ]
+                                    }
+                                }
+                            ]
+                        ]
+                    }
+                ]
+            ],
+            "target": {
+                "tag": "Unnamed",
+                "contents": {
+                    "tag": "Primitive",
+                    "contents": {
+                        "tag": "List",
+                        "contents": {
+                            "tag": "Unnamed",
+                            "contents": {
+                                "tag": "Any",
+                                "contents": [
+                                    "a"
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "funName": [
+                "find",
+                "minimum"
+            ],
+            "sources": [
+                [
+                    [
+                        "param"
+                    ],
+                    {
+                        "tag": "Named",
+                        "contents": [
+                            [
+                                "tree"
+                            ],
+                            [
+                                {
+                                    "tag": "Unnamed",
+                                    "contents": {
+                                        "tag": "Primitive",
+                                        "contents": {
+                                            "tag": "Int32"
+                                        }
+                                    }
+                                }
+                            ]
+                        ]
+                    }
+                ]
+            ],
+            "target": {
+                "tag": "Named",
+                "contents": [
+                    [
+                        "maybe"
+                    ],
+                    [
+                        {
+                            "tag": "Unnamed",
+                            "contents": {
+                                "tag": "Primitive",
+                                "contents": {
+                                    "tag": "Int32"
+                                }
+                            }
+                        }
+                    ]
+                ]
+            }
+        }
+    ]
+}
