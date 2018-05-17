@@ -103,7 +103,7 @@ function = do
   return $ FunDef name src tgt
 
 typePartsSum :: Parser NamedType
-typePartsSum = fmap SumParts $ sepBy1 constructorParser $ lexeme $ string "|"
+typePartsSum = fmap SumParts $ sepBy1 constructorParser $ symbol "|"
   where
     constructorParser = do
       identifier <- lexeme pascalCaseIdentifier
@@ -113,7 +113,7 @@ typePartsSum = fmap SumParts $ sepBy1 constructorParser $ lexeme $ string "|"
 typePartsProduct :: Parser NamedType
 typePartsProduct = do
   _ <- lexeme pascalCaseIdentifier
-  braces (fmap ProdParts $ sepBy1 constructorParser $ lexeme $ string ",")
+  braces (fmap ProdParts $ sepBy1 constructorParser $ symbol ",")
   where
     constructorParser = do
       identifier <- lexeme camelCaseIdentifier
@@ -123,10 +123,10 @@ typePartsProduct = do
 
 typeDef :: Parser NamedTypeDef
 typeDef = do
-  _ <- lexeme (symbol "data")
+  _ <- symbol "data"
   name <- lexeme pascalCaseIdentifier
-  variables <- many snakeCaseIdentifier
-  _ <- lexeme (symbol "=")
+  variables <- many $ lexeme snakeCaseIdentifier
+  _ <- symbol "="
   parts <- try typePartsProduct <|> typePartsSum
   return $ NamedTypeDef name variables parts
 
