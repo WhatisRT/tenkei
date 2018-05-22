@@ -38,7 +38,7 @@ getProcessOutput dir extraEnv cmd = do
   readCreateProcess cp ""
 
 languageList :: [String]
-languageList = ["c", "haskell", "python"]
+languageList = ["c", "cpp", "haskell", "python"]
 
 main :: IO ()
 main = do
