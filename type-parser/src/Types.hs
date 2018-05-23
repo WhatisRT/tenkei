@@ -46,6 +46,8 @@ data NamedType
 data UnnamedType
   = Any Identifier
   | Primitive PrimitiveType
+  | UnnamedSum [Type]
+  | UnnamedProduct [Type]
   deriving (Eq, Generic, Show)
 
 data PrimitiveType

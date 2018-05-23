@@ -7,149 +7,128 @@ module Parsers.Haskell
   ) where
 
 import Control.Monad
-import Data.Either
-import Data.Either.Combinators
-import Data.List
 import Data.Maybe
-import Text.Printf
 
 import Parsers.GeneralParsers
 
-import Text.Megaparsec
-import Text.Megaparsec.Char
-import qualified Text.Megaparsec.Char.Lexer as L
+import Language.Haskell.Parser
+import Language.Haskell.Syntax
 
 import Types
 
-spaceConsumer :: Parser ()
-spaceConsumer = L.space space1 (L.skipLineComment "--") (L.skipBlockComment "{-" "-}")
-
-lexeme :: Parser a -> Parser a
-lexeme = L.lexeme spaceConsumer
-
-symbol :: String -> Parser String
-symbol = L.symbol spaceConsumer
-
-braces :: Parser a -> Parser a
-braces = between (symbol "{") (symbol "}")
-
-brackets :: Parser a -> Parser a
-brackets = between (symbol "[") (symbol "]")
-
-parens :: Parser a -> Parser a
-parens = between (symbol "(") (symbol ")")
+data ProductHelper = ZeroArg | OneArg Type | MultiArg NamedTypeDef
 
 parseHaskell :: String -> Maybe DefFile
 parseHaskell s = do
-  blocks <- rightToMaybe $ parse (many codeBlock) "Haskell code" s
-  (moduleName, exports) <- listToMaybe $ rights $ fmap (parse moduleDef "Type definitions") blocks
-  let inExports = inExports' exports
-  let typeDefs = filter (inExports . typeName) $ rights $ fmap (parse typeDef "Type definitions") blocks
-  let funDefs = filter (inExports . funName) $ rights $ fmap (parse function "Function definitions") blocks
-  return $ DefFile moduleName funDefs typeDefs
+  (HsModule _ (Module moduleName) _ _ definitions) <- case parseModule s of
+             (ParseOk x) -> Just x
+             _ -> Nothing
+  let funDefs = catMaybes $ fmap parseFunctionType definitions
+  let typeDefs = join $ catMaybes $ fmap parseTypeDecl definitions
+  return $ DefFile (pascalCaseToIdentifier moduleName) funDefs typeDefs
+
+dummyIdentifiers :: [Identifier]
+dummyIdentifiers = fmap (("arg" :) . return . show) ([0..] :: [Integer])
+
+dummyIdentifiers2 :: [Identifier]
+dummyIdentifiers2 = fmap (("typeclassarg" :) . return . show) ([0..] :: [Integer])
+
+parseFunctionType :: HsDecl -> Maybe FunDef
+parseFunctionType (HsTypeSig _ [name] (HsQualType context funType)) = do
+  let (s, t) = maybeFunType
+  return $ FunDef (camelCaseToIdentifier $ hsNameToString name) (zip dummyIdentifiers2 (context >>= typeClassToFunctions) ++ extract s) t
   where
-    inExports' :: Maybe [Identifier] -> Identifier -> Bool
-    inExports' (Just l) i = i `elem` l
-    inExports' Nothing _ = True
+    parsedFunType = hsTypeToType funType
+    maybeFunType =
+      case parsedFunType of
+        (Unnamed (Primitive (Function a b))) -> (Just a, b)
+        _ -> (Nothing, parsedFunType)
+    extract (Just l) = l
+    extract Nothing = []
+    typeClassToFunctions :: HsAsst -> [Type]
+    typeClassToFunctions (name, params) =
+      case name of
+        UnQual (HsIdent "Ord") ->
+          [Unnamed $ Primitive $ Function [(["x"], Unnamed $ Any ["a"]), (["y"], Unnamed $ Any ["a"])] $ Unnamed $ Primitive Bool]
+        _ -> undefined
+parseFunctionType (HsTypeSig _ names _) = error ("How did this happen?\n" ++ show names)
+parseFunctionType _ = Nothing
 
-moduleDef :: Parser (Identifier, Maybe [Identifier])
-moduleDef = do
-  _ <- lexeme $ string "module"
-  moduleName <- lexeme pascalCaseIdentifier
-  exports <- optional $ parens $ sepBy1 (lexeme camelCaseIdentifier) $ symbol ","
-  _ <- lexeme $ string "where"
-  eof
-  return (moduleName, exports)
-
-primitiveType :: Parser PrimitiveType
-primitiveType =
-  try (symbol "()" >> return Unit) <|>
-  try (symbol "Bool" >> return Bool) <|>
-  try (symbol "Int8" >> return Int8) <|>
-  try (symbol "Int16" >> return Int16) <|>
-  try (symbol "Int32" >> return Int32) <|>
-  try (symbol "Int64" >> return Int64) <|>
-  try (symbol "UInt8" >> return UInt8) <|>
-  try (symbol "UInt16" >> return UInt16) <|>
-  try (symbol "UInt32" >> return UInt32) <|>
-  try (symbol "UInt64" >> return UInt64) <|>
-  try (symbol "Char" >> return CodepointUnicode) <|>
-  try (List <$> brackets typeParser) <|>
-  try (parens functionTypeParser)
-
-functionTypeParser :: Parser PrimitiveType
-functionTypeParser = do
-  types <- sepBy1 (lexeme typeParser) $ symbol "->"
-  return $ Function (augmentParameters $ init types) $ last types
-
-typeParser :: Parser Type
-typeParser = ((Unnamed . Primitive) <$> primitiveType) <|> ((Unnamed . Any) <$> snakeCaseIdentifier) <|> namedTypeParser
-
-namedTypeParser :: Parser Type
-namedTypeParser = do
-  name <- lexeme pascalCaseIdentifier
-  arguments <- many $ lexeme typeParser
-  return $ Named name arguments
-
-augmentParameters :: [Type] -> [Variable]
-augmentParameters [type_] = [(["param"], type_)]
-augmentParameters types = (\(i, type_) -> ([printf "param%d" i], type_)) <$> zip ([0..] :: [Integer]) types
-
-function :: Parser FunDef
-function = do
-  name <- lexeme camelCaseIdentifier
-  _ <- symbol "::"
-  Function src tgt <- functionTypeParser
-  return $ FunDef name src tgt
-
-typePartsSum :: Parser NamedType
-typePartsSum = fmap SumParts $ sepBy1 constructorParser $ symbol "|"
+parseTypeDecl :: HsDecl -> Maybe [NamedTypeDef]
+parseTypeDecl (HsDataDecl _ _ name params constructors _) =
+  Just $ NamedTypeDef convName convParams (fst constrHelper) : snd constrHelper
   where
-    constructorParser = do
-      identifier <- lexeme pascalCaseIdentifier
-      typeName <- lexeme typeParser
-      return (identifier, typeName)
+    convName = convertTypeIdentifier name
+    convParams = fmap convertTypeParameters params
+    constrHelper = convertToSum constructors
+parseTypeDecl _ = Nothing
 
-typePartsProduct :: Parser NamedType
-typePartsProduct = do
-  _ <- lexeme pascalCaseIdentifier
-  braces (fmap ProdParts $ sepBy1 constructorParser $ symbol ",")
+convertToSum :: [HsConDecl] -> (NamedType, [NamedTypeDef])
+convertToSum x = (SumParts $ fmap fst types, catMaybes $ fmap snd types)
   where
-    constructorParser = do
-      identifier <- lexeme camelCaseIdentifier
-      _ <- lexeme (string "::")
-      typeName <- lexeme typeParser
-      return (identifier, typeName)
+    types = fmap hsConDeclToTypes x
 
-typeDef :: Parser NamedTypeDef
-typeDef = do
-  _ <- symbol "data"
-  name <- lexeme pascalCaseIdentifier
-  variables <- many $ lexeme snakeCaseIdentifier
-  _ <- symbol "="
-  parts <- try typePartsProduct <|> typePartsSum
-  return $ NamedTypeDef name variables parts
+hsConDeclToTypes :: HsConDecl -> ((Identifier, Type), Maybe NamedTypeDef)
+hsConDeclToTypes (HsConDecl _ name hsType) =
+  uncurry productHelpersToTypes (convName, hsProductToProductHelper (fmap unbang hsType) convName)
+  where
+    convName = convertTypeIdentifier name
+    unbang (HsBangedTy x) = x
+    unbang (HsUnBangedTy x) = x
+hsConDeclToTypes HsRecDecl{} = error "Currently there is no support for record constructors!"
 
-lineEnd :: Parser ()
-lineEnd = eof <|> void eol
+productHelpersToTypes :: Identifier -> ProductHelper -> ((Identifier, Type), Maybe NamedTypeDef)
+productHelpersToTypes x ZeroArg = ((x, Unnamed $ Primitive Unit), Nothing)
+productHelpersToTypes x (OneArg y) = ((x, y), Nothing)
+productHelpersToTypes x (MultiArg def) = ((x, Named (typeName def) []), Just def)
 
-indentedLine :: Parser String
-indentedLine = do
-  c <- oneOf " \t"
-  cs <- manyTill anyChar lineEnd
-  return (c : cs)
+hsProductToProductHelper :: [HsType] -> Identifier -> ProductHelper
+hsProductToProductHelper [] _ = ZeroArg
+hsProductToProductHelper [x] _ = OneArg $ hsTypeToType x
+hsProductToProductHelper x i = MultiArg $ NamedTypeDef (i ++ ["helper"]) [] $ ProdParts $ zip dummyIdentifiers $ fmap hsTypeToType x
 
-unindentedLine :: Parser String
-unindentedLine = do
-  c <- printChar
-  cs <- manyTill anyChar (oneOf "\n")
-  return (c : cs)
+hsTypeToType :: HsType -> Type
+hsTypeToType (HsTyFun a b) = Unnamed $ Primitive $ Function (zip dummyIdentifiers $ init typeList) $ last typeList
+  where
+    unwrapFunction a (HsTyFun b c) = a : unwrapFunction b c
+    unwrapFunction a b = [a, b]
+    typeList = hsTypeToType <$> unwrapFunction a b
+hsTypeToType (HsTyTuple types) = Unnamed $ UnnamedProduct (fmap hsTypeToType types)
+hsTypeToType (HsTyApp a b) = case a of
+             (HsTyCon (Special HsListCon)) -> Unnamed $ Primitive $ List y
+             _ -> Named name (y:args)
+  where
+    Named name args = hsTypeToType a
+    y = hsTypeToType b
+hsTypeToType (HsTyVar x) = Unnamed $ Any $ convertTypeParameters x
+hsTypeToType (HsTyCon (Qual _ _)) = undefined
+hsTypeToType (HsTyCon (UnQual x)) =
+  case hsNameToString x of
+    "Bool" -> Unnamed $ Primitive Bool
+    "Int8" -> Unnamed $ Primitive Int8
+    "Int16" -> Unnamed $ Primitive Int16
+    "Int32" -> Unnamed $ Primitive Int32
+    "Int64" -> Unnamed $ Primitive Int64
+    "Word8" -> Unnamed $ Primitive UInt8
+    "Word16" -> Unnamed $ Primitive UInt16
+    "Word32" -> Unnamed $ Primitive UInt32
+    "Word64" -> Unnamed $ Primitive UInt64
+    "Char" -> Unnamed $ Primitive CodepointUnicode
+    _ -> Named (convertTypeIdentifier x) []
+hsTypeToType (HsTyCon (Special HsUnitCon)) = undefined
+hsTypeToType (HsTyCon (Special HsListCon)) = undefined
+hsTypeToType (HsTyCon (Special HsFunCon)) = undefined
+hsTypeToType (HsTyCon (Special (HsTupleCon _))) = undefined
+hsTypeToType (HsTyCon (Special HsCons)) = undefined
 
-emptyLine :: Parser String
-emptyLine = symbol "\n"
+hsNameToString :: HsName -> String
+hsNameToString (HsIdent x) = x
+hsNameToString (HsSymbol x) = x
 
-codeBlock :: Parser String
-codeBlock = do
-  l <- unindentedLine <|> emptyLine
-  ls <- many (indentedLine <|> emptyLine)
-  return (intercalate "\n" (l : ls))
+convertTypeIdentifier :: HsName -> Identifier
+convertTypeIdentifier (HsIdent x) = pascalCaseToIdentifier x
+convertTypeIdentifier (HsSymbol x) = pascalCaseToIdentifier x
+
+convertTypeParameters :: HsName -> Identifier
+convertTypeParameters (HsIdent x) = [x]
+convertTypeParameters (HsSymbol _) = undefined

@@ -1,6 +1,7 @@
 module Parsers.GeneralParsers where
 
 import Data.Char
+import Data.Either
 
 import Text.Megaparsec
 import Text.Megaparsec.Char
@@ -38,3 +39,9 @@ camelCaseIdentifier = do
 
 snakeCaseIdentifier :: Parser Identifier
 snakeCaseIdentifier = sepBy1 lowerWord $ char '_'
+
+camelCaseToIdentifier :: String -> Identifier
+camelCaseToIdentifier s = fromRight (error "This should not be happening!") $ parse camelCaseIdentifier "" s
+
+pascalCaseToIdentifier :: String -> Identifier
+pascalCaseToIdentifier s = fromRight (error "This should not be happening!") $ parse pascalCaseIdentifier "" s

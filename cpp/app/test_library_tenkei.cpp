@@ -20,12 +20,12 @@ std::vector<uint32_t> library_language()
   return result;
 }
 
-bool binary_or(bool param0, bool param1)
+bool binary_or(bool arg_0, bool arg_1)
 {
   cbor_item_t *args = cbor_new_definite_array(2);
-  cbor_item_t *arg1 = serialize<bool>(param0);
+  cbor_item_t *arg1 = serialize<bool>(arg_0);
   cbor_array_push(args, arg1);
-  cbor_item_t *arg2 = serialize<bool>(param1);
+  cbor_item_t *arg2 = serialize<bool>(arg_1);
   cbor_array_push(args, arg2);
   cbor_item_t *res = call_cbor(tenkei_binary_or, args);
   bool result = deserialize<bool>(res);
@@ -33,10 +33,10 @@ bool binary_or(bool param0, bool param1)
   return result;
 }
 
-std::vector<int32_t> modify_array(std::vector<int32_t> param)
+std::vector<int32_t> modify_array(std::vector<int32_t> arg_0)
 {
   cbor_item_t *args = cbor_new_definite_array(1);
-  cbor_item_t *arg1 = serialize<std::vector<int32_t>>(param);
+  cbor_item_t *arg1 = serialize<std::vector<int32_t>>(arg_0);
   cbor_array_push(args, arg1);
   cbor_item_t *res = call_cbor(tenkei_modify_array, args);
   std::vector<int32_t> result = deserialize<std::vector<int32_t>>(res);
@@ -44,12 +44,12 @@ std::vector<int32_t> modify_array(std::vector<int32_t> param)
   return result;
 }
 
-int32_t exponentiate(int32_t param0, int32_t param1)
+int32_t exponentiate(int32_t arg_0, int32_t arg_1)
 {
   cbor_item_t *args = cbor_new_definite_array(2);
-  cbor_item_t *arg1 = serialize<int32_t>(param0);
+  cbor_item_t *arg1 = serialize<int32_t>(arg_0);
   cbor_array_push(args, arg1);
-  cbor_item_t *arg2 = serialize<int32_t>(param1);
+  cbor_item_t *arg2 = serialize<int32_t>(arg_1);
   cbor_array_push(args, arg2);
   cbor_item_t *res = call_cbor(tenkei_exponentiate, args);
   int32_t result = deserialize<int32_t>(res);
@@ -57,10 +57,10 @@ int32_t exponentiate(int32_t param0, int32_t param1)
   return result;
 }
 
-struct tenkei_value identity(struct tenkei_value param)
+struct tenkei_value identity(struct tenkei_value arg_0)
 {
   cbor_item_t *args = cbor_new_definite_array(1);
-  cbor_item_t *arg1 = serialize<tenkei_value>(param);
+  cbor_item_t *arg1 = serialize<tenkei_value>(arg_0);
   cbor_array_push(args, arg1);
   cbor_item_t *res = call_cbor(tenkei_identity, args);
   struct tenkei_value result = deserialize<tenkei_value>(res);
@@ -68,12 +68,12 @@ struct tenkei_value identity(struct tenkei_value param)
   return result;
 }
 
-struct tenkei_value choose_left(struct tenkei_value param0, struct tenkei_value param1)
+struct tenkei_value choose_left(struct tenkei_value arg_0, struct tenkei_value arg_1)
 {
   cbor_item_t *args = cbor_new_definite_array(2);
-  cbor_item_t *arg1 = serialize<tenkei_value>(param0);
+  cbor_item_t *arg1 = serialize<tenkei_value>(arg_0);
   cbor_array_push(args, arg1);
-  cbor_item_t *arg2 = serialize<tenkei_value>(param1);
+  cbor_item_t *arg2 = serialize<tenkei_value>(arg_1);
   cbor_array_push(args, arg2);
   cbor_item_t *res = call_cbor(tenkei_choose_left, args);
   struct tenkei_value result = deserialize<tenkei_value>(res);
@@ -81,10 +81,10 @@ struct tenkei_value choose_left(struct tenkei_value param0, struct tenkei_value 
   return result;
 }
 
-std::vector<tenkei_value> reverse_list(std::vector<tenkei_value> param)
+std::vector<tenkei_value> reverse_list(std::vector<tenkei_value> arg_0)
 {
   cbor_item_t *args = cbor_new_definite_array(1);
-  cbor_item_t *arg1 = serialize<std::vector<tenkei_value>>(param);
+  cbor_item_t *arg1 = serialize<std::vector<tenkei_value>>(arg_0);
   cbor_array_push(args, arg1);
   cbor_item_t *res = call_cbor(tenkei_reverse_list, args);
   std::vector<tenkei_value> result = deserialize<std::vector<tenkei_value>>(res);
@@ -92,12 +92,12 @@ std::vector<tenkei_value> reverse_list(std::vector<tenkei_value> param)
   return result;
 }
 
-struct tenkei_value apply_function(struct tenkei_fun_ptr param0, struct tenkei_value param1)
+struct tenkei_value apply_function(struct tenkei_fun_ptr arg_0, struct tenkei_value arg_1)
 {
   cbor_item_t *args = cbor_new_definite_array(2);
-  cbor_item_t *arg1 = serialize<tenkei_fun_ptr>(param0);
+  cbor_item_t *arg1 = serialize<tenkei_fun_ptr>(arg_0);
   cbor_array_push(args, arg1);
-  cbor_item_t *arg2 = serialize<tenkei_value>(param1);
+  cbor_item_t *arg2 = serialize<tenkei_value>(arg_1);
   cbor_array_push(args, arg2);
   cbor_item_t *res = call_cbor(tenkei_apply_function, args);
   struct tenkei_value result = deserialize<tenkei_value>(res);

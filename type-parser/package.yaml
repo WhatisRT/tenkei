@@ -28,6 +28,7 @@ dependencies:
 - either
 - megaparsec
 - parsec
+- haskell-src
 
 library:
   source-dirs: src
