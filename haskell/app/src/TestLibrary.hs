@@ -10,6 +10,7 @@ import FFIWrappers
 import System.IO.Unsafe
 import Pointers
 import Tenkei
+import CBOR
 
 foreign import ccall "tenkei_free" tenkei_free :: Ptr Word8 -> CSize -> IO ()
 
