@@ -44,6 +44,7 @@ interfaceHeader libName =
   , "import Data.CBOR"
   , "import FFIWrappers"
   , "import Tenkei"
+  , "import CBOR"
   , "import " ++ libName
   , ""
   , "tenkei_free :: Ptr Word8 -> CSize -> IO ()"
