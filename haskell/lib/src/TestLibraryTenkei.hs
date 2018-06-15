@@ -7,8 +7,8 @@ import Foreign.C
 
 import Data.CBOR
 import FFIWrappers
-import Pointers
 import Tenkei
+import CBOR
 import TestLibrary
 
 tenkei_free :: Ptr Word8 -> CSize -> IO ()
