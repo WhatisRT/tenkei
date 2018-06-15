@@ -5,11 +5,17 @@ module FFIWrappers
   , callForeign
   , offerForeign
   , tenkeiFreePtr
+  , TenkeiPtr (..)
+  , TenkeiFunPtr (..)
   ) where
 
 import Foreign
 import Foreign.C
 import System.IO.Unsafe
+
+newtype TenkeiPtr = TenkeiPtr { getPtr :: Ptr ()}
+
+data TenkeiFunPtr = TenkeiFunPtr { funPtr :: TenkeiPtr, freePtr :: TenkeiPtr, dataPtr :: TenkeiPtr }
 
 foreign import ccall "wrapper" freeFunctionToPtr :: (Ptr Word8 -> CSize -> IO ()) -> IO (FunPtr (Ptr Word8 -> CSize -> IO ()))
 

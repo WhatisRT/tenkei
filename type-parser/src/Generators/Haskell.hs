@@ -25,7 +25,6 @@ libHeader libName =
   , "import Data.CBOR"
   , "import FFIWrappers"
   , "import System.IO.Unsafe"
-  , "import Pointers"
   , "import Tenkei"
   , "import CBOR"
   , ""
@@ -44,7 +43,6 @@ interfaceHeader libName =
   , ""
   , "import Data.CBOR"
   , "import FFIWrappers"
-  , "import Pointers"
   , "import Tenkei"
   , "import " ++ libName
   , ""
@@ -163,6 +161,7 @@ funDefToExport f@(FunDef name sources _) =
         , ")"
         ]
 
+-- This function decides how deep values should be serialized
 usePointer :: Type -> Bool
 usePointer _ = False
 --usePointer = hasTypeVar
@@ -195,21 +194,9 @@ funDefToImport f@(FunDef name sources target) =
         ]
     convArg arg argName =
       mconcat $
-      case arg of
-        (Unnamed (Primitive (Function xs _))) ->
-          [ argName
-          , "' <- toFunPointer (serialize . (\\["
-          , intercalate "," $ fmap (("x" ++) . show) [1 .. length xs]
-          , "] -> "
-          , argName
-          , " "
-          , unwords $ fmap (\x -> "(deserialize $ getValue x" ++ show x ++ ")") [1 .. length xs]
-          , ") . deserialize)"
-          ] --, " tenkei_free"]
-        _ ->
-          if usePointer arg
-            then [argName, "' <- toPointer ", argName]
-            else ["let ", argName, "' = ", argName]
+      if usePointer arg
+        then [argName, "' <- toPointer ", argName]
+        else ["let ", argName, "' = ", argName]
 
 typeDefToText :: NamedTypeDef -> [String]
 typeDefToText (NamedTypeDef name args (SumParts parts)) =

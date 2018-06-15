@@ -10,10 +10,41 @@ module Tenkei where
 import Data.CBOR
 import Data.Maybe
 import Generics.SOP
+import FFIWrappers
+import CBOR
 
 import Data.ByteString.Conversion
 
 import Data.Int
+import Foreign
+import Foreign.C
+import System.IO.Unsafe
+
+instance Tenkei TenkeiPtr where
+  serialize = CBOR_UInt . fromIntegral . (\(WordPtr x) -> x) . ptrToWordPtr . getPtr
+  deserialize (CBOR_UInt i) = TenkeiPtr $ wordPtrToPtr $ WordPtr $ fromIntegral i
+  deserialize x = error ("Error while interpreting CBOR: not a memory address:\n" ++ show x)
+
+newtype TenkeiValue = TenkeiValue { getValue :: CBOR }
+
+instance Tenkei TenkeiValue where
+  serialize = getValue
+  deserialize = TenkeiValue
+
+instance Tenkei TenkeiFunPtr where
+  serialize p = CBOR_Array $ fmap serialize [funPtr p, freePtr p, dataPtr p]
+  deserialize (CBOR_Array [fct, fr, d]) = TenkeiFunPtr (deserialize fct) (deserialize fr) (deserialize d)
+  deserialize x = error ("Error while interpreting CBOR: not a function:\n" ++ show x)
+
+callIO ::
+     (Tenkei a, Tenkei b) => (Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()) -> (Ptr Word8 -> CSize -> IO ()) -> a -> IO b
+callIO function freeFunction input = fmap deserialize $ callCBORIO function freeFunction $ serialize input
+
+call :: (Tenkei a, Tenkei b) => (Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()) -> (Ptr Word8 -> CSize -> IO ()) -> a -> b
+call f freeFunction = unsafePerformIO . callIO f freeFunction
+
+offer :: (Tenkei a, Tenkei b) => (a -> b) -> Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
+offer f = offerCBOR $ serialize . f . deserialize
 
 class Tenkei a where
   serialize :: a -> CBOR
@@ -24,6 +55,10 @@ class Tenkei a where
   default deserialize :: (Generic a, All2 Tenkei (Code a)) =>
     CBOR -> a
   deserialize = to . deserializeS
+
+instance (Tenkei a, Tenkei b) => Tenkei (a -> b) where
+  serialize f = serialize $ unsafePerformIO $ toFunPointer $ serialize . f . (\(CBOR_Array [x]) -> deserialize x)
+  deserialize i = deserialize . fromFunPointer (deserialize i) . serialize
 
 instance Tenkei Bool where
   serialize = CBOR_UInt . fromIntegral . fromEnum
