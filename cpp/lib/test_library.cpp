@@ -7,7 +7,7 @@
 
 static std::vector<uint32_t> library_language(void)
 {
-  std::vector<uint32_t> res {99, 43, 43};
+  std::vector<uint32_t> res {99, 112, 112};
 
   return res;
 }
