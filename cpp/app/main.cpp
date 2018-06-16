@@ -81,7 +81,7 @@ cbor_item_t *cbor_head(cbor_item_t *args)
 
 int main(int argc, char *argv[])
 {
-  printf("c++\n");
+  printf("cpp\n");
 
   print_list_char(library_language());
 
