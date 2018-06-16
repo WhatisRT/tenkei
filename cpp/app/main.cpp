@@ -119,7 +119,7 @@ int main(int argc, char *argv[])
 
   struct tenkei_value val = {serialize(list4)};
 
-  struct tenkei_value res6_ = apply_function(offer_fun_ptr_cbor(&cbor_head), val);
+  struct tenkei_value res6_ = apply_function(offer_fun_ptr_cbor(cbor_head), val);
 
   std::vector<int32_t> res6 = deserialize<std::vector<int32_t>>(res6_.contents);
 
