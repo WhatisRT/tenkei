@@ -1,7 +1,7 @@
 #!/bin/sh -e
 # If you're debugging, replace -e with -ex in the line above.
 
-if [ "$(uname)" == Darwin ]; then
+if [ "$(uname)" = Darwin ]; then
 	set_soname() {
 	 install_name_tool -id "$@"
 	}
