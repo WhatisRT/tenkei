@@ -1,11 +1,11 @@
+import Control.Monad.Except
 import Data.List
 import Data.Maybe
-
 import System.Environment
-import System.Process hiding (runProcess)
+import System.Exit
+import System.IO
 import System.IO.Error
-
-import Control.Monad.Except
+import System.Process
 
 type ErrorIO = ExceptT String IO
 
@@ -26,16 +26,15 @@ getCreateProcess dir extraEnv cmd = do
   env <- getEnvironment
   return (CreateProcess (ShellCommand cmd) (Just dir) (Just (env ++ extraEnv)) Inherit Inherit Inherit False False False False False False Nothing Nothing False )
 
-runProcess :: String -> [(String, String)] -> String -> IO ()
-runProcess dir extraEnv cmd = do
-  cp <- getCreateProcess dir extraEnv cmd
-  _ <- withCreateProcess cp (\_ _ _ p -> waitForProcess p)
-  return ()
-
 getProcessOutput :: String -> [(String, String)] -> String -> IO String
 getProcessOutput dir extraEnv cmd = do
   cp <- getCreateProcess dir extraEnv cmd
   readCreateProcess cp ""
+
+getProcessExitCodeAndOutput :: String -> [(String, String)] -> String -> IO (ExitCode, String, String)
+getProcessExitCodeAndOutput dir extraEnv cmd = do
+  cp <- getCreateProcess dir extraEnv cmd
+  readCreateProcessWithExitCode cp ""
 
 languageList :: [String]
 languageList = ["c", "cpp", "haskell", "python"]
@@ -98,7 +97,15 @@ build lang1 lang2 = do
   return "Build successful!"
 
 executeProcesses :: String -> [(String, String)] -> ErrorIO ()
-executeProcesses dir subst = liftIO $ runProcess dir subst "./build"
+executeProcesses dir subst = do
+  (exit, stdoutStr, stderrStr) <- liftIO $ getProcessExitCodeAndOutput dir subst "./build"
+  case exit of
+    ExitSuccess -> return ()
+    ExitFailure _ ->
+      liftIO $ do
+        putStr stdoutStr
+        hPutStr stderr stderrStr
+        exitFailure
 
 help :: IO ()
 help =
