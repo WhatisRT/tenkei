@@ -74,7 +74,7 @@ void tenkei_callback(void *f, uint8_t *arg, size_t arg_len, uint8_t **res, size_
 
 struct tenkei_fun_ptr offer_fun_ptr_cbor(tenkei_user_data f)
 {
-  struct tenkei_fun_ptr result = { &tenkei_callback, 0, *(void**)f };
+  struct tenkei_fun_ptr result = { &tenkei_callback, 0, (void*)f };
 
   return result;
 }
