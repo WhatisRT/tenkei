@@ -2,7 +2,6 @@
 
 module Tree where
 
-import Data.Int
 import Generics.SOP hiding (Nil)
 import Tenkei
 import qualified GHC.Generics as GHC
@@ -17,8 +16,7 @@ flatten :: Tree a -> [a]
 flatten Nil = []
 flatten (Node x t1 t2) = flatten t1 ++ [x] ++ flatten t2
 
--- findMinimum :: (Ord a) => Tree a -> Maybe a
-findMinimum :: Tree Int32 -> Maybe Int32
+findMinimum :: (Ord a) => Tree a -> Maybe a
 findMinimum =
   (\x ->
      case x of

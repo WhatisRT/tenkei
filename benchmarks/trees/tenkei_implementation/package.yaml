@@ -17,6 +17,8 @@ dependencies:
 - binary
 - bytestring
 - bytestring-conversion
+- reflection
+- constraints
 
 library:
   source-dirs:

@@ -19,6 +19,8 @@ dependencies:
 - binary
 - bytestring
 - bytestring-conversion
+- reflection
+- constraints
 
 executables:
   trees-exe:
@@ -30,8 +32,8 @@ executables:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
-    - -lHStree-lib-0.1.0.0-7EtilDp8QlT7sUxpi2VOmG-ghc8.2.2
     extra-lib-dirs:
     - tenkei_implementation
+    - .
     extra-libraries:
-    - HStree-lib-0.1.0.0-7EtilDp8QlT7sUxpi2VOmG-ghc8.2.2
+    - HStree-lib-0.1.0.0-8oZicy4jVub7kN0oW6WitQ-ghc8.2.2

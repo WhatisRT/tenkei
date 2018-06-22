@@ -1,5 +1,6 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module TreeTenkei where
 
@@ -10,7 +11,9 @@ import FFIWrappers
 import System.IO.Unsafe
 import Generics.SOP hiding (Nil)
 import Tenkei
+import CBOR
 import qualified GHC.Generics as GHC
+import Reflection
 
 data Tree a = Nil | Node a (Tree a) (Tree a) deriving (GHC.Generic)
 
@@ -32,8 +35,8 @@ flatten arg1 = unsafePerformIO $ do
   return $ deserialize $ callCBOR foreign_tenkei_flatten tenkei_free $ CBOR_Array [serialize arg1']
 
 foreign import ccall "tenkei_find_minimum" foreign_tenkei_find_minimum :: Ptr Word8 -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
-findMinimum :: (Tree Int32) -> (Maybe Int32)
-findMinimum arg1 = unsafePerformIO $ do
-  let arg1' = arg1
-  return $ deserialize $ callCBOR foreign_tenkei_find_minimum tenkei_free $ CBOR_Array [serialize arg1']
-
+findMinimum :: forall a. (Ord a, Tenkei a) => Tree a -> Maybe a
+findMinimum arg1 =
+  deserialize $ callCBOR foreign_tenkei_find_minimum tenkei_free $ CBOR_Array [serialize helper, serialize arg1]
+  where
+    helper = (\x y -> compare ((deserialize $ getValue x) :: a) ((deserialize $ getValue y) :: a)) :: TenkeiValue -> TenkeiValue -> Ordering

@@ -56,9 +56,17 @@ class Tenkei a where
     CBOR -> a
   deserialize = to . deserializeS
 
-instance (Tenkei a, Tenkei b) => Tenkei (a -> b) where
-  serialize f = serialize $ unsafePerformIO $ toFunPointer $ serialize . f . (\(CBOR_Array [x]) -> deserialize x)
+instance {-# OVERLAPPABLE #-} (Tenkei a, Tenkei b) => Tenkei (a -> b) where
+  serialize f = serialize $ unsafePerformIO $ toFunPointer $ serialize . (\(CBOR_Array [x1]) -> f (deserialize x1))
   deserialize i = deserialize . fromFunPointer (deserialize i) . serialize
+
+instance {-# OVERLAPPING #-} (Tenkei a, Tenkei b, Tenkei c) => Tenkei (a -> b -> c) where
+  serialize f = serialize $ unsafePerformIO $ toFunPointer $ serialize .
+    (\args ->
+       case args of
+         (CBOR_Array [x1, x2]) -> f (deserialize x1) (deserialize x2)
+         _ -> error $ "Error while interpreting CBOR: not two arguments:\n" ++ show args)
+  deserialize i arg1 arg2 = deserialize $ (fromFunPointer (deserialize i)) $ CBOR_Array [(serialize arg1), (serialize arg2)]
 
 instance Tenkei Bool where
   serialize = CBOR_UInt . fromIntegral . fromEnum
@@ -116,6 +124,8 @@ instance Tenkei Integer where
   serialize = CBOR_BS . toByteString'
   deserialize (CBOR_BS s) | (Just i) <- fromByteString s = i
                           | otherwise = error "Error while interpreting CBOR: not a bigint"
+
+instance Tenkei Ordering
 
 instance Tenkei a => Tenkei [a] where
   serialize = CBOR_Array . fmap serialize
